@@ -1,2 +1,2 @@
-pub struct Hello {}
-pub struct World {}
+pub struct Hello { }
+pub struct World { }

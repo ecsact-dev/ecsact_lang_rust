@@ -50,7 +50,24 @@ macro_rules! typed_id_convert {
 	};
 }
 
+typed_id_convert!(SystemId, SystemLikeId);
+typed_id_convert!(ActionId, SystemLikeId);
+typed_id_convert!(ActionId, CompositeId);
 typed_id_convert!(ComponentId, CompositeId);
+typed_id_convert!(TransientId, CompositeId);
+typed_id_convert!(ComponentLikeId, CompositeId);
+
+typed_id_convert!(ComponentId, DeclId);
+typed_id_convert!(TransientId, DeclId);
+typed_id_convert!(SystemId, DeclId);
+typed_id_convert!(ActionId, DeclId);
+typed_id_convert!(VariantId, DeclId);
+typed_id_convert!(SystemLikeId, DeclId);
+typed_id_convert!(CompositeId, DeclId);
+typed_id_convert!(ComponentLikeId, DeclId);
+
+typed_id_convert!(ComponentId, ComponentLikeId);
+typed_id_convert!(TransientId, ComponentLikeId);
 
 pub struct CodegenPluginContext {
 	package_id: i32,

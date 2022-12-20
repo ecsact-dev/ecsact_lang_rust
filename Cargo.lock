@@ -146,6 +146,8 @@ dependencies = [
  "ecsact_codegen",
  "ecsact_dylib_runtime",
  "json",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]

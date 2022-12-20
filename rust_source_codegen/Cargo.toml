@@ -11,6 +11,8 @@ bench = false
 ecsact_codegen = { path = "../codegen" }
 ecsact = { path = "../ecsact" }
 ecsact_dylib_runtime = { path = "../ecsact_dylib_runtime" }
+quote = "1.0.21"
+proc-macro2 = "1.0.49"
 
 [build-dependencies]
 bindgen = "0.53.1"
