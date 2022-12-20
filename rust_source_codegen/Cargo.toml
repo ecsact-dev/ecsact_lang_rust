@@ -1,0 +1,18 @@
+[package]
+name = "ecsact_rust_source_codegen"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+bench = false
+
+[dependencies]
+ecsact_codegen = { path = "../codegen" }
+ecsact = { path = "../ecsact" }
+ecsact_dylib_runtime = { path = "../ecsact_dylib_runtime" }
+
+[build-dependencies]
+bindgen = "0.53.1"
+json = "0.12.4"
+

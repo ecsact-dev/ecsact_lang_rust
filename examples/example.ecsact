@@ -1,0 +1,10 @@
+package example;
+
+component Hello {
+	i32 num;
+}
+
+component World {
+	f32 baz;
+}
+
