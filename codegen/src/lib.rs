@@ -1,6 +1,6 @@
 use quote::quote;
 
-fn find_fn_name_ident<'a, I>(tokens: I) -> Option<proc_macro2::Ident>
+fn find_fn_name_ident<I>(tokens: I) -> Option<proc_macro2::Ident>
 where
 	I: IntoIterator<Item = proc_macro2::TokenTree>,
 {
@@ -13,7 +13,7 @@ where
 			_ => None,
 		};
 
-		if !ident.is_some() {
+		if ident.is_none() {
 			break;
 		}
 
@@ -35,10 +35,10 @@ where
 		}
 	}
 
-	return None;
+	None
 }
 
-fn strip_quotes<'a>(s: &'a str) -> &'a str {
+fn strip_quotes(s: &str) -> &str {
 	let s = match s.strip_suffix('"') {
 		Some(s) => s,
 		None => s,
@@ -64,7 +64,7 @@ pub fn plugin_entry(
 		_ => "".to_string(),
 	};
 
-	if plugin_name.len() == 0 {
+	if plugin_name.is_empty() {
 		panic!("Expected string literal for plugin_entry argument");
 	}
 
@@ -72,10 +72,6 @@ pub fn plugin_entry(
 
 	let fn_impl_ident = find_fn_name_ident(fn_def.clone())
 		.expect("ecsact_codegen::plugin_entry must be used on a function");
-
-	let fn_impl_expr = fn_impl_ident.to_string() + "(&mut ctx)";
-
-	println!("FN Impl Ident: {}", fn_impl_expr);
 
 	let plugin_name_fn = quote! {
 		static PLUGIN_NAME: &str = concat!(#plugin_name, "\0");

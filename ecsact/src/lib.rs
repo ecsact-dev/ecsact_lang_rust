@@ -2,6 +2,8 @@ use std::convert::From;
 use std::ffi::c_char;
 use std::fmt::{Error, Write};
 
+/// Creates a "typed ID". A typed ID is an opaque `i32`. The purpose is for
+/// type safety when passing ids to the Ecsact API.
 macro_rules! typed_id {
 	($type_name:ident) => {
 		#[derive(Clone, Copy)]
@@ -40,6 +42,8 @@ typed_id!(CompositeId);
 typed_id!(SystemLikeId);
 typed_id!(ComponentLikeId);
 
+/// Implements From trait for typed ID structs from the `typed_id!` macro. Some
+/// Ecsact IDs are supposed to be easily converted from one to the other.
 macro_rules! typed_id_convert {
 	($type1:ident, $type2:ident) => {
 		impl From<$type1> for $type2 {
@@ -69,6 +73,15 @@ typed_id_convert!(ComponentLikeId, DeclId);
 typed_id_convert!(ComponentId, ComponentLikeId);
 typed_id_convert!(TransientId, ComponentLikeId);
 
+pub enum IntType {
+	I8,
+	U8,
+	I16,
+	U16,
+	I32,
+	U32,
+}
+
 pub enum FieldType {
 	Bool { length: i32 },
 	I8 { length: i32 },
@@ -80,6 +93,19 @@ pub enum FieldType {
 	F32 { length: i32 },
 	Entity { length: i32 },
 	Enum { id: EnumId, length: i32 },
+}
+
+impl From<IntType> for FieldType {
+	fn from(int_type: IntType) -> FieldType {
+		match int_type {
+			IntType::I8 => FieldType::I8 { length: 1 },
+			IntType::U8 => FieldType::U8 { length: 1 },
+			IntType::I16 => FieldType::I16 { length: 1 },
+			IntType::U16 => FieldType::U16 { length: 1 },
+			IntType::I32 => FieldType::I32 { length: 1 },
+			IntType::U32 => FieldType::U32 { length: 1 },
+		}
+	}
 }
 
 pub struct CodegenPluginContext {

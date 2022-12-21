@@ -138,6 +138,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecsact_example"
+version = "0.1.0"
+
+[[package]]
 name = "ecsact_rust_source_codegen"
 version = "0.1.0"
 dependencies = [
@@ -145,6 +149,7 @@ dependencies = [
  "ecsact",
  "ecsact_codegen",
  "ecsact_dylib_runtime",
+ "indented",
  "json",
  "proc-macro2",
  "quote",
@@ -186,6 +191,12 @@ checksum = "df004cfca50ef23c36850aaaa59ad52cc70d0e90243c3c7737a4dd32dc7a3c4f"
 dependencies = [
  "quick-error",
 ]
+
+[[package]]
+name = "indented"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e7dcbfe0e83f0f757cdaea15d49cad72918fdec1bc9b0ace04268d382d2e1c6"
 
 [[package]]
 name = "json"
