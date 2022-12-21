@@ -2,6 +2,7 @@ package example;
 
 component Hello {
 	i32 num;
+	i32[7] lots_o_things;
 }
 
 component World {

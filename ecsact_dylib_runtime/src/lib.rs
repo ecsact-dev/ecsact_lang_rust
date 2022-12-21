@@ -25,13 +25,94 @@ macro_rules! call_or_panic {
 pub mod meta {
 	use crate::internal::ecsact_meta_component_name;
 	use crate::internal::ecsact_meta_count_components;
+	use crate::internal::ecsact_meta_count_fields;
 	use crate::internal::ecsact_meta_count_packages;
 	use crate::internal::ecsact_meta_count_top_level_systems;
+	use crate::internal::ecsact_meta_field_name;
+	use crate::internal::ecsact_meta_field_type;
 	use crate::internal::ecsact_meta_get_component_ids;
+	use crate::internal::ecsact_meta_get_field_ids;
 	use crate::internal::ecsact_meta_get_package_ids;
 	use crate::internal::ecsact_meta_get_top_level_systems;
 	use crate::internal::ecsact_meta_package_file_path;
 	use crate::internal::ecsact_meta_package_name;
+	use crate::internal::ecsact_type_kind;
+
+	use crate::internal::ecsact_builtin_type as ebt;
+
+	pub fn count_fields(id: ecsact::CompositeId) -> i32 {
+		unsafe { call_or_panic!(ecsact_meta_count_fields, id.into()) }
+	}
+
+	pub fn field_name(
+		compo_id: ecsact::CompositeId,
+		field_id: ecsact::FieldId,
+	) -> String {
+		unsafe {
+			crate::u8cstr_to_string(call_or_panic!(
+				ecsact_meta_field_name,
+				compo_id.into(),
+				field_id.into()
+			))
+		}
+	}
+
+	pub fn field_type(
+		compo_id: ecsact::CompositeId,
+		field_id: ecsact::FieldId,
+	) -> ecsact::FieldType {
+		unsafe {
+			let cfield_type = call_or_panic!(
+				ecsact_meta_field_type,
+				compo_id.into(),
+				field_id.into()
+			);
+
+			match cfield_type.kind {
+				ecsact_type_kind::ECSACT_TYPE_KIND_BUILTIN => {
+					let length = cfield_type.length;
+					match cfield_type.type_.builtin {
+						ebt::ECSACT_BOOL => ecsact::FieldType::Bool { length },
+						ebt::ECSACT_I8 => ecsact::FieldType::I8 { length },
+						ebt::ECSACT_U8 => ecsact::FieldType::U8 { length },
+						ebt::ECSACT_I16 => ecsact::FieldType::I16 { length },
+						ebt::ECSACT_U16 => ecsact::FieldType::U16 { length },
+						ebt::ECSACT_I32 => ecsact::FieldType::I32 { length },
+						ebt::ECSACT_U32 => ecsact::FieldType::U32 { length },
+						ebt::ECSACT_F32 => ecsact::FieldType::F32 { length },
+						ebt::ECSACT_ENTITY_TYPE => {
+							ecsact::FieldType::Entity { length }
+						}
+						_ => unimplemented!(),
+					}
+				}
+				ecsact_type_kind::ECSACT_TYPE_KIND_ENUM => {
+					ecsact::FieldType::Enum {
+						id: cfield_type.type_.enum_id.into(),
+						length: cfield_type.length,
+					}
+				}
+				_ => unimplemented!(),
+			}
+		}
+	}
+
+	pub fn get_field_ids(id: ecsact::CompositeId) -> Vec<ecsact::FieldId> {
+		let mut ids = vec![-1; count_fields(id).try_into().unwrap()];
+		unsafe {
+			call_or_panic!(
+				ecsact_meta_get_field_ids,
+				id.into(),
+				ids.len().try_into().unwrap(),
+				ids.as_mut_ptr() as *mut i32,
+				0 as *mut i32
+			);
+		}
+
+		ids.into_iter()
+			.map(|id| -> ecsact::FieldId { id.into() })
+			.collect()
+	}
 
 	pub fn count_components(id: ecsact::PackageId) -> i32 {
 		unsafe { call_or_panic!(ecsact_meta_count_components, id.into()) }
@@ -40,7 +121,7 @@ pub mod meta {
 	pub fn get_component_ids(
 		pkg_id: ecsact::PackageId,
 	) -> Vec<ecsact::ComponentId> {
-		let mut ids = vec![-1, count_components(pkg_id).try_into().unwrap()];
+		let mut ids = vec![-1; count_components(pkg_id).try_into().unwrap()];
 		unsafe {
 			call_or_panic!(
 				ecsact_meta_get_component_ids,
@@ -75,7 +156,7 @@ pub mod meta {
 		pkg_id: ecsact::PackageId,
 	) -> Vec<ecsact::SystemLikeId> {
 		let mut ids =
-			vec![-1, count_top_level_systems(pkg_id).try_into().unwrap()];
+			vec![-1; count_top_level_systems(pkg_id).try_into().unwrap()];
 		unsafe {
 			call_or_panic!(
 				ecsact_meta_get_top_level_systems,

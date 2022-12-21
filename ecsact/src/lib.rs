@@ -69,6 +69,19 @@ typed_id_convert!(ComponentLikeId, DeclId);
 typed_id_convert!(ComponentId, ComponentLikeId);
 typed_id_convert!(TransientId, ComponentLikeId);
 
+pub enum FieldType {
+	Bool { length: i32 },
+	I8 { length: i32 },
+	U8 { length: i32 },
+	I16 { length: i32 },
+	U16 { length: i32 },
+	I32 { length: i32 },
+	U32 { length: i32 },
+	F32 { length: i32 },
+	Entity { length: i32 },
+	Enum { id: EnumId, length: i32 },
+}
+
 pub struct CodegenPluginContext {
 	package_id: i32,
 	write_fn: extern "C" fn(*const ::std::ffi::c_char, i32),
