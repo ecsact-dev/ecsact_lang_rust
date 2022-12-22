@@ -22,31 +22,160 @@ macro_rules! call_or_panic {
 	}};
 }
 
+fn c_to_rust_cap(
+	c_sys_cap_value: crate::internal::ecsact_system_capability,
+) -> ecsact::SystemCapability {
+	use crate::internal::ecsact_system_capability as c_sys_cap;
+
+	match c_sys_cap_value {
+		c_sys_cap::ECSACT_SYS_CAP_READONLY => {
+			ecsact::SystemCapability::Readonly { optional: false }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_WRITEONLY => {
+			ecsact::SystemCapability::Writeonly { optional: false }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_READWRITE => {
+			ecsact::SystemCapability::Readwrite { optional: false }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_OPTIONAL_READONLY => {
+			ecsact::SystemCapability::Readonly { optional: true }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_OPTIONAL_WRITEONLY => {
+			ecsact::SystemCapability::Writeonly { optional: true }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_OPTIONAL_READWRITE => {
+			ecsact::SystemCapability::Readwrite { optional: true }
+		}
+		c_sys_cap::ECSACT_SYS_CAP_INCLUDE => ecsact::SystemCapability::Include,
+		c_sys_cap::ECSACT_SYS_CAP_EXCLUDE => ecsact::SystemCapability::Exclude,
+		c_sys_cap::ECSACT_SYS_CAP_ADDS => ecsact::SystemCapability::Adds,
+		c_sys_cap::ECSACT_SYS_CAP_REMOVES => ecsact::SystemCapability::Removes,
+		_ => unimplemented!(),
+	}
+}
+
 pub mod meta {
-	use crate::internal::ecsact_meta_component_name;
-	use crate::internal::ecsact_meta_count_components;
-	use crate::internal::ecsact_meta_count_enum_values;
-	use crate::internal::ecsact_meta_count_enums;
-	use crate::internal::ecsact_meta_count_fields;
-	use crate::internal::ecsact_meta_count_packages;
-	use crate::internal::ecsact_meta_count_top_level_systems;
-	use crate::internal::ecsact_meta_enum_name;
-	use crate::internal::ecsact_meta_enum_storage_type;
-	use crate::internal::ecsact_meta_enum_value;
-	use crate::internal::ecsact_meta_enum_value_name;
-	use crate::internal::ecsact_meta_field_name;
-	use crate::internal::ecsact_meta_field_type;
-	use crate::internal::ecsact_meta_get_component_ids;
-	use crate::internal::ecsact_meta_get_enum_ids;
-	use crate::internal::ecsact_meta_get_enum_value_ids;
-	use crate::internal::ecsact_meta_get_field_ids;
-	use crate::internal::ecsact_meta_get_package_ids;
-	use crate::internal::ecsact_meta_get_top_level_systems;
-	use crate::internal::ecsact_meta_package_file_path;
-	use crate::internal::ecsact_meta_package_name;
+	use std::collections::HashMap;
+	use std::iter::zip;
+
+	use crate::internal::{
+		ecsact_meta_action_name,
+		ecsact_meta_component_name, // 360 degree format trick
+		ecsact_meta_count_child_systems,
+		ecsact_meta_count_components,
+		ecsact_meta_count_enum_values,
+		ecsact_meta_count_enums,
+		ecsact_meta_count_fields,
+		ecsact_meta_count_packages,
+		ecsact_meta_count_top_level_systems,
+		ecsact_meta_decl_full_name,
+		ecsact_meta_enum_name,
+		ecsact_meta_enum_storage_type,
+		ecsact_meta_enum_value,
+		ecsact_meta_enum_value_name,
+		ecsact_meta_field_name,
+		ecsact_meta_field_type,
+		ecsact_meta_get_child_system_ids,
+		ecsact_meta_get_component_ids,
+		ecsact_meta_get_enum_ids,
+		ecsact_meta_get_enum_value_ids,
+		ecsact_meta_get_field_ids,
+		ecsact_meta_get_package_ids,
+		ecsact_meta_get_top_level_systems,
+		ecsact_meta_package_file_path,
+		ecsact_meta_package_name,
+		ecsact_meta_system_capabilities,
+		ecsact_meta_system_capabilities_count,
+		ecsact_meta_system_name,
+	};
 
 	use crate::internal::ecsact_builtin_type as ebt;
 	use crate::internal::ecsact_type_kind;
+
+	pub fn count_child_systems(sys_like_id: ecsact::SystemLikeId) -> i32 {
+		unsafe {
+			call_or_panic!(ecsact_meta_count_child_systems, sys_like_id.into())
+		}
+	}
+
+	pub fn get_child_system_ids(
+		sys_like_id: ecsact::SystemLikeId,
+	) -> Vec<ecsact::SystemId> {
+		let mut ids = vec![-1, count_child_systems(sys_like_id)];
+
+		unsafe {
+			call_or_panic!(
+				ecsact_meta_get_child_system_ids,
+				sys_like_id.into(),
+				ids.len().try_into().unwrap(),
+				ids.as_mut_ptr() as *mut i32,
+				std::ptr::null_mut::<i32>()
+			)
+		}
+
+		ids.into_iter().map(|i| i.into()).collect()
+	}
+
+	pub fn decl_full_name(id: ecsact::DeclId) -> String {
+		unsafe {
+			crate::u8cstr_to_string(call_or_panic!(
+				ecsact_meta_decl_full_name,
+				id.into()
+			))
+		}
+	}
+
+	pub fn system_name(sys_id: ecsact::SystemId) -> String {
+		unsafe {
+			crate::u8cstr_to_string(call_or_panic!(
+				ecsact_meta_system_name,
+				sys_id.into()
+			))
+		}
+	}
+
+	pub fn action_name(sys_id: ecsact::ActionId) -> String {
+		unsafe {
+			crate::u8cstr_to_string(call_or_panic!(
+				ecsact_meta_action_name,
+				sys_id.into()
+			))
+		}
+	}
+
+	pub fn system_capabilities_count(pkg_id: ecsact::SystemLikeId) -> i32 {
+		unsafe {
+			call_or_panic!(ecsact_meta_system_capabilities_count, pkg_id.into())
+		}
+	}
+
+	pub fn system_capabilities(
+		sys_like_id: ecsact::SystemLikeId,
+	) -> HashMap<ecsact::SystemLikeId, ecsact::SystemCapability> {
+		let caps_count = system_capabilities_count(sys_like_id);
+		let mut sys_like_ids = vec![-1; caps_count as usize];
+		let mut sys_caps =
+			Vec::<crate::internal::ecsact_system_capability>::new();
+
+		unsafe {
+			call_or_panic!(
+				ecsact_meta_system_capabilities,
+				sys_like_id.into(),
+				caps_count,
+				sys_like_ids.as_mut_ptr() as *mut i32,
+				sys_caps.as_mut_ptr()
+					as *mut crate::internal::ecsact_system_capability,
+				std::ptr::null_mut::<i32>()
+			);
+		}
+
+		let mut result = HashMap::with_capacity(caps_count as usize);
+		for (sys_like_id, sys_cap) in zip(sys_like_ids, sys_caps) {
+			result.insert(sys_like_id.into(), crate::c_to_rust_cap(sys_cap));
+		}
+
+		result
+	}
 
 	pub fn enum_name(enum_id: ecsact::EnumId) -> String {
 		unsafe {

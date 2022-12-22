@@ -6,7 +6,8 @@ use std::fmt::{Error, Write};
 /// type safety when passing ids to the Ecsact API.
 macro_rules! typed_id {
 	($type_name:ident) => {
-		#[derive(Clone, Copy)]
+		#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+		#[repr(transparent)]
 		pub struct $type_name(i32);
 
 		impl From<i32> for $type_name {
@@ -138,3 +139,39 @@ impl Write for CodegenPluginContext {
 		Ok(())
 	}
 }
+
+pub enum SystemCapability {
+	Readonly { optional: bool },
+	Writeonly { optional: bool },
+	Readwrite { optional: bool },
+	Include,
+	Exclude,
+	Adds,
+	Removes,
+}
+
+pub struct SystemExecutionContext {
+	#[doc(hidden)]
+	_ctx: *mut std::ffi::c_void,
+}
+
+impl SystemExecutionContext {
+	// TODO: ecsact_system_execution_context_action
+	// TODO: ecsact_system_execution_context_add
+	// TODO: ecsact_system_execution_context_generate
+	// TODO: ecsact_system_execution_context_get
+	// TODO: ecsact_system_execution_context_has
+	// TODO: ecsact_system_execution_context_id
+	// TODO: ecsact_system_execution_context_parent
+	// TODO: ecsact_system_execution_context_remove
+	// TODO: ecsact_system_execution_context_same
+	// TODO: ecsact_system_execution_context_update
+
+	pub fn add(c: impl Component) {}
+}
+
+pub trait Component {}
+pub trait Composite {}
+pub trait System {}
+pub trait SystemLike {}
+pub trait Action {}

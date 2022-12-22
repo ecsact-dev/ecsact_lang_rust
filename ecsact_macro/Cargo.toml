@@ -1,16 +1,16 @@
 [package]
-name = "ecsact_example"
+name = "ecsact_macro"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 
 [lib]
-crate-type = ["cdylib"]
-bench = false
+proc-macro = true
 
 [dependencies]
 ecsact = { path = "../ecsact" }
-ecsact_macro = { path = "../ecsact_macro" }
+proc-macro2 = "1.0.49"
+quote = "1.0.21"
+syn = "1.0.105"
 
 [build-dependencies]
 

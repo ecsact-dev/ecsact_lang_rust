@@ -140,6 +140,20 @@ dependencies = [
 [[package]]
 name = "ecsact_example"
 version = "0.1.0"
+dependencies = [
+ "ecsact",
+ "ecsact_macro",
+]
+
+[[package]]
+name = "ecsact_macro"
+version = "0.1.0"
+dependencies = [
+ "ecsact",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "ecsact_rust_source_codegen"

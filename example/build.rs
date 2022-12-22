@@ -25,4 +25,12 @@ fn main() {
 		" == [Ecsact Codegen Error] ==\n{}",
 		&std::str::from_utf8(&codegen_output.stderr).unwrap()
 	);
+
+	Command::new("ecsact")
+		.arg("codegen")
+		.arg(ecsact_src_path)
+		.arg("-p")
+		.arg(rust_plugin_path)
+		.output()
+		.unwrap();
 }

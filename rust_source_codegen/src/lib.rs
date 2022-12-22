@@ -108,5 +108,35 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 		writeln!(ctx, "{}", indented(comp_struct.to_string())).unwrap();
 	}
 
+	for sys_like_id in meta::get_top_level_systems(ctx.package_id()) {
+		let sys_mod = create_system_like_rust_mod(sys_like_id);
+		writeln!(ctx, "{sys_mod}").unwrap();
+	}
+
 	writeln!(ctx, "}}").unwrap();
+}
+
+fn create_system_like_rust_mod(
+	sys_like_id: ecsact::SystemLikeId,
+) -> proc_macro2::TokenStream {
+	let decl_name = meta::decl_full_name(sys_like_id.into());
+	let decl_name_ident =
+		proc_macro2::Ident::new(&decl_name, proc_macro2::Span::call_site());
+
+	let sys_like_id_lit =
+		proc_macro2::Literal::i32_unsuffixed(sys_like_id.into());
+
+	let mut child_mods: Vec<proc_macro2::TokenStream> = Vec::new();
+
+	for child_id in meta::get_child_system_ids(sys_like_id) {
+		child_mods.push(create_system_like_rust_mod(child_id.into()));
+	}
+
+	quote! {
+		pub mod #decl_name_ident {
+			pub const ID:  = #sys_like_id_lit;
+
+			#(#child_mods)*
+		}
+	}
 }
