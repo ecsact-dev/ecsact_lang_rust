@@ -58,9 +58,11 @@ pub mod meta {
 	use std::collections::HashMap;
 	use std::iter::zip;
 
+	use crate::c_to_rust_cap;
 	use crate::internal::{
+		// force rustfmt to put each use on their own line
 		ecsact_meta_action_name,
-		ecsact_meta_component_name, // 360 degree format trick
+		ecsact_meta_component_name,
 		ecsact_meta_count_child_systems,
 		ecsact_meta_count_components,
 		ecsact_meta_count_enum_values,
@@ -87,6 +89,7 @@ pub mod meta {
 		ecsact_meta_system_capabilities,
 		ecsact_meta_system_capabilities_count,
 		ecsact_meta_system_name,
+		ecsact_system_capability,
 	};
 
 	use crate::internal::ecsact_builtin_type as ebt;
@@ -101,16 +104,18 @@ pub mod meta {
 	pub fn get_child_system_ids(
 		sys_like_id: ecsact::SystemLikeId,
 	) -> Vec<ecsact::SystemId> {
-		let mut ids = vec![-1, count_child_systems(sys_like_id)];
+		let mut ids = vec![-1; count_child_systems(sys_like_id) as usize];
 
-		unsafe {
-			call_or_panic!(
-				ecsact_meta_get_child_system_ids,
-				sys_like_id.into(),
-				ids.len().try_into().unwrap(),
-				ids.as_mut_ptr() as *mut i32,
-				std::ptr::null_mut::<i32>()
-			)
+		if !ids.is_empty() {
+			unsafe {
+				call_or_panic!(
+					ecsact_meta_get_child_system_ids,
+					sys_like_id.into(),
+					ids.len().try_into().unwrap(),
+					ids.as_mut_ptr() as *mut i32,
+					std::ptr::null_mut::<i32>()
+				)
+			}
 		}
 
 		ids.into_iter().map(|i| i.into()).collect()
@@ -151,30 +156,38 @@ pub mod meta {
 
 	pub fn system_capabilities(
 		sys_like_id: ecsact::SystemLikeId,
-	) -> HashMap<ecsact::SystemLikeId, ecsact::SystemCapability> {
+	) -> HashMap<ecsact::ComponentLikeId, ecsact::SystemCapability> {
 		let caps_count = system_capabilities_count(sys_like_id);
-		let mut sys_like_ids = vec![-1; caps_count as usize];
-		let mut sys_caps =
-			Vec::<crate::internal::ecsact_system_capability>::new();
 
-		unsafe {
-			call_or_panic!(
-				ecsact_meta_system_capabilities,
-				sys_like_id.into(),
-				caps_count,
-				sys_like_ids.as_mut_ptr() as *mut i32,
-				sys_caps.as_mut_ptr()
-					as *mut crate::internal::ecsact_system_capability,
-				std::ptr::null_mut::<i32>()
-			);
+		if caps_count > 0 {
+			let mut comp_like_ids: Vec<ecsact::ComponentLikeId> =
+				Vec::with_capacity(caps_count as usize);
+			let mut sys_caps: Vec<ecsact_system_capability> =
+				Vec::with_capacity(caps_count as usize);
+
+			unsafe {
+				call_or_panic!(
+					ecsact_meta_system_capabilities,
+					sys_like_id.into(),
+					caps_count,
+					comp_like_ids.as_mut_ptr() as *mut i32,
+					sys_caps.as_mut_ptr() as *mut ecsact_system_capability,
+					std::ptr::null_mut::<i32>()
+				);
+
+				comp_like_ids.set_len(caps_count as usize);
+				sys_caps.set_len(caps_count as usize);
+			}
+
+			let mut result = HashMap::with_capacity(caps_count as usize);
+			for (sys_like_id, sys_cap) in zip(comp_like_ids, sys_caps) {
+				result.insert(sys_like_id, c_to_rust_cap(sys_cap));
+			}
+
+			return result;
 		}
 
-		let mut result = HashMap::with_capacity(caps_count as usize);
-		for (sys_like_id, sys_cap) in zip(sys_like_ids, sys_caps) {
-			result.insert(sys_like_id.into(), crate::c_to_rust_cap(sys_cap));
-		}
-
-		result
+		HashMap::new()
 	}
 
 	pub fn enum_name(enum_id: ecsact::EnumId) -> String {

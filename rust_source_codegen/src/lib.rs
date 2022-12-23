@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::{fmt::Write, str::FromStr};
 
 use ecsact_dylib_runtime::meta;
 use indented::indented;
@@ -33,12 +33,9 @@ fn to_rust_type(t: ecsact::FieldType) -> proc_macro2::TokenStream {
 fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 	write!(ctx, "/// Generated file - DO NOT EDIT\n\n").unwrap();
 
-	write!(
-		ctx,
-		"pub mod {} {{\n\n",
-		meta::package_name(ctx.package_id())
-	)
-	.unwrap();
+	let pkg_name = meta::package_name(ctx.package_id());
+
+	write!(ctx, "pub mod {} {{\n\n", pkg_name).unwrap();
 
 	for enum_id in meta::get_enum_ids(ctx.package_id()).into_iter() {
 		let enum_name = proc_macro2::Ident::new(
@@ -109,8 +106,11 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 	}
 
 	for sys_like_id in meta::get_top_level_systems(ctx.package_id()) {
-		let sys_mod = create_system_like_rust_mod(sys_like_id);
-		writeln!(ctx, "{sys_mod}").unwrap();
+		let sys_mod = create_system_like_rust_mod(
+			sys_like_id,
+			&(pkg_name.to_owned() + "."),
+		);
+		writeln!(ctx, "\t{sys_mod}").unwrap();
 	}
 
 	writeln!(ctx, "}}").unwrap();
@@ -118,10 +118,13 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 
 fn create_system_like_rust_mod(
 	sys_like_id: ecsact::SystemLikeId,
+	strip_prefix: &str,
 ) -> proc_macro2::TokenStream {
-	let decl_name = meta::decl_full_name(sys_like_id.into());
+	let decl_full_name = meta::decl_full_name(sys_like_id.into());
+
+	let decl_name = decl_full_name.strip_prefix(strip_prefix).unwrap();
 	let decl_name_ident =
-		proc_macro2::Ident::new(&decl_name, proc_macro2::Span::call_site());
+		proc_macro2::Ident::new(decl_name, proc_macro2::Span::call_site());
 
 	let sys_like_id_lit =
 		proc_macro2::Literal::i32_unsuffixed(sys_like_id.into());
@@ -129,14 +132,111 @@ fn create_system_like_rust_mod(
 	let mut child_mods: Vec<proc_macro2::TokenStream> = Vec::new();
 
 	for child_id in meta::get_child_system_ids(sys_like_id) {
-		child_mods.push(create_system_like_rust_mod(child_id.into()));
+		child_mods.push(create_system_like_rust_mod(
+			child_id.into(),
+			&(decl_name.to_owned() + "."),
+		));
 	}
 
+	let mut allow_get_fn = Vec::new();
+	let mut allow_update_fn = Vec::new();
+	let mut allow_add_fn = Vec::new();
+	let mut allow_remove_fn = Vec::new();
+	let mut allow_has_fn = Vec::new();
+
+	for (comp_id, cap) in meta::system_capabilities(sys_like_id) {
+		match cap {
+			ecsact::SystemCapability::Readonly { optional } => {
+				allow_get_fn.push(comp_id);
+				if optional {
+					allow_has_fn.push(comp_id);
+				}
+			}
+			ecsact::SystemCapability::Writeonly { optional: _ } => {
+				unimplemented!();
+			}
+			ecsact::SystemCapability::Readwrite { optional } => {
+				allow_update_fn.push(comp_id);
+				allow_get_fn.push(comp_id);
+
+				if optional {
+					allow_has_fn.push(comp_id);
+				}
+			}
+			ecsact::SystemCapability::Include => {}
+			ecsact::SystemCapability::Exclude => {}
+			ecsact::SystemCapability::Adds => {
+				allow_add_fn.push(comp_id);
+			}
+			ecsact::SystemCapability::Removes => {
+				allow_remove_fn.push(comp_id);
+			}
+		}
+	}
+
+	let add_fn = make_context_add_fn(&allow_add_fn);
+	let addable_trait = make_context_addable_trait(&allow_add_fn);
+
 	quote! {
+		#[allow(non_snake_case)]
 		pub mod #decl_name_ident {
-			pub const ID:  = #sys_like_id_lit;
+			pub const ID: i32 = #sys_like_id_lit;
+
+			#addable_trait
+
+			#[repr(transparent)]
+			pub struct __Context(*mut ::std::ffi::c_void);
+
+			impl __Context {
+				#add_fn
+			}
 
 			#(#child_mods)*
 		}
 	}
+}
+
+fn make_context_add_fn(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	Some(quote! {
+		pub fn add(comp: impl __AddableComponent) {
+			todo!()
+		}
+	})
+}
+
+fn ecsact_ident_to_rust_ident(ecsact_ident: &str) -> proc_macro2::TokenStream {
+	proc_macro2::TokenStream::from_str(&ecsact_ident.replace('.', "::"))
+		.unwrap()
+}
+
+fn make_context_addable_trait(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	let comp_trait_impls: Vec<proc_macro2::TokenStream> = comps
+		.iter()
+		.cloned()
+		.map(|comp_id| {
+			let comp_full_name = meta::decl_full_name(comp_id.into());
+			let comp_ident = ecsact_ident_to_rust_ident(&comp_full_name);
+
+			quote! {
+				impl __AddableComponent for crate::#comp_ident {}
+			}
+		})
+		.collect();
+
+	Some(quote! {
+		pub trait __AddableComponent {}
+		#(#comp_trait_impls)*
+	})
 }
