@@ -2,6 +2,8 @@ use std::convert::From;
 use std::ffi::c_char;
 use std::fmt::{Error, Write};
 
+pub mod support;
+
 /// Creates a "typed ID". A typed ID is an opaque `i32`. The purpose is for
 /// type safety when passing ids to the Ecsact API.
 macro_rules! typed_id {

@@ -1,54 +1,12 @@
 use quote::quote;
 
-fn find_fn_name_ident<I>(tokens: I) -> Option<proc_macro2::Ident>
-where
-	I: IntoIterator<Item = proc_macro2::TokenTree>,
-{
-	let mut is_fn = false;
-	let mut is_pub = false;
+use crate::internal::find_fn_name_ident;
 
-	for token in tokens.into_iter() {
-		let ident: Option<proc_macro2::Ident> = match token {
-			proc_macro2::TokenTree::Ident(id) => Some(id.clone()),
-			_ => None,
-		};
-
-		if ident.is_none() {
-			break;
-		}
-
-		let ident = ident.unwrap();
-		let ident_str = ident.to_string();
-
-		if !is_fn {
-			match ident_str.as_str() {
-				"pub" => is_pub = true,
-				"fn" => is_fn = true,
-				_ => {}
-			}
-		} else {
-			if is_pub {
-				panic!("Ecsact codegen plugin entry fn must not be public");
-			}
-
-			return Some(ident);
-		}
+fn strip_quotes(input: &str) -> Option<&str> {
+	if input.chars().filter(|&c| c == '"').count() != 2 {
+		panic!("No quotes in your plugin file extension name. You donkey!");
 	}
-
-	None
-}
-
-fn strip_quotes(s: &str) -> &str {
-	let s = match s.strip_suffix('"') {
-		Some(s) => s,
-		None => s,
-	};
-	let s = match s.strip_prefix('"') {
-		Some(s) => s,
-		None => s,
-	};
-
-	s
+	input.strip_prefix('"')?.strip_suffix('"')
 }
 
 pub fn plugin_entry(
@@ -67,7 +25,8 @@ pub fn plugin_entry(
 		panic!("Expected string literal for plugin_entry argument");
 	}
 
-	let plugin_name = strip_quotes(&plugin_name);
+	let plugin_name = strip_quotes(&plugin_name)
+		.expect("Expected string literal for plugin_entry argument");
 
 	let fn_impl_ident = find_fn_name_ident(fn_def.clone())
 		.expect("ecsact_codegen::plugin_entry must be used on a function");

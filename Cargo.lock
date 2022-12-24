@@ -65,6 +65,9 @@ dependencies = [
 [[package]]
 name = "ecsact"
 version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+]
 
 [[package]]
 name = "ecsact_dylib_runtime"

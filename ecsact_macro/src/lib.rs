@@ -1,6 +1,8 @@
 mod codegen;
 mod system_impl;
 
+mod internal;
+
 #[proc_macro_attribute]
 pub fn system_impl(
 	attr: proc_macro::TokenStream,

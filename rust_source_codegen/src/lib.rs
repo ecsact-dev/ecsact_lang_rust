@@ -1,4 +1,4 @@
-use std::{fmt::Write, str::FromStr};
+use std::fmt::Write;
 
 use ecsact_dylib_runtime::meta;
 use indented::indented;
@@ -197,7 +197,7 @@ fn create_system_like_rust_mod(
 			#addable_trait
 
 			#[repr(transparent)]
-			pub struct __Context(*mut ::std::ffi::c_void);
+			pub struct __Context(pub *mut ::std::ffi::c_void);
 
 			impl __Context {
 				#add_fn
@@ -227,11 +227,6 @@ fn make_context_add_fn(
 	})
 }
 
-fn ecsact_ident_to_rust_ident(ecsact_ident: &str) -> proc_macro2::TokenStream {
-	proc_macro2::TokenStream::from_str(&ecsact_ident.replace('.', "::"))
-		.unwrap()
-}
-
 fn make_context_addable_trait(
 	comps: &Vec<ecsact::ComponentLikeId>,
 ) -> Option<proc_macro2::TokenStream> {
@@ -244,7 +239,8 @@ fn make_context_addable_trait(
 		.cloned()
 		.map(|comp_id| {
 			let comp_full_name = meta::decl_full_name(comp_id.into());
-			let comp_ident = ecsact_ident_to_rust_ident(&comp_full_name);
+			let comp_ident =
+				ecsact::support::ecsact_ident_to_rust_ident(&comp_full_name);
 
 			quote! {
 				impl __AddableComponent for crate::#comp_ident {}

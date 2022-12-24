@@ -77,7 +77,7 @@ pub mod example {
 		pub trait __AddableComponent: ecsact::ComponentLike {}
 		impl __AddableComponent for crate::example::Attacking {}
 		#[repr(transparent)]
-		pub struct __Context(*mut ::std::ffi::c_void);
+		pub struct __Context(pub *mut ::std::ffi::c_void);
 		impl __Context {
 			pub fn add<T: __AddableComponent + ::ecsact::ComponentLike>(
 				&mut self,
@@ -96,7 +96,7 @@ pub mod example {
 	pub mod Gravity {
 		pub const ID: i32 = 7;
 		#[repr(transparent)]
-		pub struct __Context(*mut ::std::ffi::c_void);
+		pub struct __Context(pub *mut ::std::ffi::c_void);
 		impl __Context {}
 	}
 }
