@@ -1,5 +1,4 @@
-use std::env;
-use std::path::PathBuf;
+use std::fs::File;
 use std::process::Command;
 
 fn main() {
@@ -10,27 +9,25 @@ fn main() {
 	println!("cargo:rerun-if-changed={}", ecsact_src_path);
 	println!("cargo:rerun-if-changed={}", rust_plugin_path);
 
-	let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+	let ecsact_rs_file = File::create("src/example_ecsact.rs").unwrap();
 
 	let codegen_output = Command::new("ecsact")
 		.arg("codegen")
 		.arg(ecsact_src_path)
 		.arg("-p")
 		.arg(rust_plugin_path)
-		.arg("-o")
-		.arg(out_path)
+		.arg("--stdout")
+		.stdout(ecsact_rs_file)
 		.output()
 		.unwrap();
+
 	print!(
 		" == [Ecsact Codegen Error] ==\n{}",
 		&std::str::from_utf8(&codegen_output.stderr).unwrap()
 	);
 
-	Command::new("ecsact")
-		.arg("codegen")
-		.arg(ecsact_src_path)
-		.arg("-p")
-		.arg(rust_plugin_path)
-		.output()
+	Command::new("rustfmt")
+		.arg("src/example_ecsact.rs")
+		.spawn()
 		.unwrap();
 }

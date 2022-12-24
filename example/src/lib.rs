@@ -1,4 +1,8 @@
-include!(concat!(env!("OUT_DIR"), "/example.ecsact.rs"));
+// include!(concat!(env!("OUT_DIR"), "/example.ecsact.rs"));
+
+pub mod example_ecsact;
+
+use example_ecsact::example;
 
 // TODO(zaucy): This function is what we need to export to a DLL or WebAssembly
 //              The plan is to make a macro to simplify this.

@@ -218,10 +218,10 @@ fn make_context_add_fn(
 	Some(quote! {
 		pub fn add<T: __AddableComponent + ::ecsact::ComponentLike>(&mut self, comp: &T) {
 			unsafe {
-			::ecsact_system_execution_context::add(
-				::ecsact_system_execution_context::Context::new(self.0),
-				comp,
-			);
+				::ecsact_system_execution_context::add(
+					::ecsact_system_execution_context::Context::new(self.0),
+					comp,
+				);
 			}
 		}
 	})
