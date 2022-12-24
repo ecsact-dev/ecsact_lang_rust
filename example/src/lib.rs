@@ -9,6 +9,7 @@ use example_ecsact::example;
 // #[allow(non_snake_case)]
 // extern "C" fn example__Gravity(ctx: *mut c_void) {}
 
+#[ecsact_macro::system_impl(example.Attack)]
 fn _my_example_impl(ctx: &mut example::Attack::__Context) {
 	let comp = example::Attacking { target: -1 };
 	ctx.add(&comp);

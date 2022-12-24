@@ -67,15 +67,6 @@ name = "ecsact"
 version = "0.1.0"
 
 [[package]]
-name = "ecsact_codegen"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "ecsact_dylib_runtime"
 version = "0.1.0"
 dependencies = [
@@ -111,8 +102,8 @@ version = "0.1.0"
 dependencies = [
  "bindgen",
  "ecsact",
- "ecsact_codegen",
  "ecsact_dylib_runtime",
+ "ecsact_macro",
  "indented",
  "json",
  "proc-macro2",

@@ -29,7 +29,7 @@ fn to_rust_type(t: ecsact::FieldType) -> proc_macro2::TokenStream {
 	}
 }
 
-#[ecsact_codegen::plugin_entry("rs")]
+#[ecsact_macro::plugin_entry("rs")]
 fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 	write!(ctx, "/// Generated file - DO NOT EDIT\n\n").unwrap();
 

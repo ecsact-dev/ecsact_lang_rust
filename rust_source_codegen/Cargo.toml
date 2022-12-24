@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 bench = false
 
 [dependencies]
-ecsact_codegen = { path = "../codegen" }
+ecsact_macro = { path = "../ecsact_macro" }
 ecsact = { path = "../ecsact" }
 ecsact_dylib_runtime = { path = "../ecsact_dylib_runtime" }
 quote = "1.0.21"
