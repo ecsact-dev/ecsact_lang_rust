@@ -75,6 +75,8 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 	writeln!(ctx).unwrap();
 
 	for comp_id in meta::get_component_ids(ctx.package_id()).into_iter() {
+		let comp_id_num: i32 = comp_id.into();
+
 		let comp_name = proc_macro2::Ident::new(
 			meta::component_name(comp_id).as_str(),
 			proc_macro2::Span::call_site(),
@@ -99,6 +101,16 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 			#[repr(C)]
 			pub struct #comp_name {
 				#(#fields),*
+			}
+
+			impl ::ecsact::Component for #comp_name {
+				const ID: ::ecsact::ComponentId = unsafe { ::ecsact::ComponentId::new(#comp_id_num) };
+			}
+			impl ::ecsact::ComponentLike for #comp_name {
+				const ID: ::ecsact::ComponentLikeId = unsafe { ::ecsact::ComponentLikeId::new(#comp_id_num) };
+			}
+			impl ::ecsact::Composite for #comp_name {
+				const ID: ::ecsact::CompositeId = unsafe { ::ecsact::CompositeId::new(#comp_id_num) };
 			}
 		};
 
@@ -204,8 +216,13 @@ fn make_context_add_fn(
 	}
 
 	Some(quote! {
-		pub fn add(comp: impl __AddableComponent) {
-			todo!()
+		pub fn add<T: __AddableComponent + ::ecsact::ComponentLike>(&mut self, comp: &T) {
+			unsafe {
+			::ecsact_system_execution_context::add(
+				::ecsact_system_execution_context::Context::new(self.0),
+				comp,
+			);
+			}
 		}
 	})
 }
@@ -236,7 +253,7 @@ fn make_context_addable_trait(
 		.collect();
 
 	Some(quote! {
-		pub trait __AddableComponent {}
+		pub trait __AddableComponent: ecsact::ComponentLike {}
 		#(#comp_trait_impls)*
 	})
 }

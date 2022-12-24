@@ -43,9 +43,9 @@ fn main() {
 		.compile("ecsact_dylib_runtime");
 
 	let bindings = bindgen::Builder::default()
-		.whitelist_var("ecsact_.*")
-		.whitelist_type("ecsact_.*")
-		.whitelist_function("ecsact_.*")
+		.allowlist_var("ecsact_.*")
+		.allowlist_type("ecsact_.*")
+		.allowlist_function("ecsact_.*")
 		.newtype_enum("ecsact_.*")
 		.clang_arg("-I".to_string() + include_dir)
 		.header("src/dylib_wrapper.h")

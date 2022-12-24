@@ -1,0 +1,12 @@
+[package]
+name = "ecsact_system_execution_context"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ecsact = { path = "../ecsact" }
+
+[build-dependencies]
+bindgen = "0.63.0"
+json = "0.12.4"
+

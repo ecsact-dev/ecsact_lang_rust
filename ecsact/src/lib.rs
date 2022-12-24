@@ -10,6 +10,15 @@ macro_rules! typed_id {
 		#[repr(transparent)]
 		pub struct $type_name(i32);
 
+		impl $type_name {
+			/// # Safety
+			///
+			/// Ecsact IDs may only be set by the code generator
+			pub const unsafe fn new(id: i32) -> Self {
+				Self(id)
+			}
+		}
+
 		impl From<i32> for $type_name {
 			fn from(id: i32) -> Self {
 				Self(id)
@@ -150,28 +159,34 @@ pub enum SystemCapability {
 	Removes,
 }
 
-pub struct SystemExecutionContext {
-	#[doc(hidden)]
-	_ctx: *mut std::ffi::c_void,
+// TODO(zaucy): Mark these traits as unsafe because of the repr(C) and ID
+// consider the ID constructor to be unsafe
+// consider a IsReprC unsafe trait
+
+pub trait Component: ComponentLike + Composite {
+	const ID: ComponentId;
 }
 
-impl SystemExecutionContext {
-	// TODO: ecsact_system_execution_context_action
-	// TODO: ecsact_system_execution_context_add
-	// TODO: ecsact_system_execution_context_generate
-	// TODO: ecsact_system_execution_context_get
-	// TODO: ecsact_system_execution_context_has
-	// TODO: ecsact_system_execution_context_id
-	// TODO: ecsact_system_execution_context_parent
-	// TODO: ecsact_system_execution_context_remove
-	// TODO: ecsact_system_execution_context_same
-	// TODO: ecsact_system_execution_context_update
-
-	pub fn add(c: impl Component) {}
+pub trait Transient: ComponentLike + Composite {
+	const ID: TransientId;
 }
 
-pub trait Component {}
-pub trait Composite {}
-pub trait System {}
-pub trait SystemLike {}
-pub trait Action {}
+pub trait Composite {
+	const ID: CompositeId;
+}
+
+pub trait ComponentLike: Composite {
+	const ID: ComponentLikeId;
+}
+
+pub trait Action: Composite + SystemLike {
+	const ID: ActionId;
+}
+
+pub trait System: SystemLike {
+	const ID: SystemId;
+}
+
+pub trait SystemLike {
+	const ID: SystemLikeId;
+}

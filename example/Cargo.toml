@@ -11,6 +11,8 @@ bench = false
 [dependencies]
 ecsact = { path = "../ecsact" }
 ecsact_macro = { path = "../ecsact_macro" }
+ecsact_system_execution_context = { path = "../ecsact_system_execution_context" }
 
 [build-dependencies]
+ecsact_rust_source_codegen = { path = "../rust_source_codegen" }
 

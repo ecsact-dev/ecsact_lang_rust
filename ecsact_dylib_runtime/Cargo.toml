@@ -11,7 +11,7 @@ bench = false
 ecsact = { path = "../ecsact" }
 
 [build-dependencies]
-bindgen = "0.53.1"
+bindgen = "0.63.0"
 cc = "1.0.78"
 json = "0.12.4"
 
