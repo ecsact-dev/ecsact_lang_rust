@@ -21,10 +21,13 @@ fn main() {
 		.output()
 		.unwrap();
 
-	print!(
-		" == [Ecsact Codegen Error] ==\n{}",
-		&std::str::from_utf8(&codegen_output.stderr).unwrap()
-	);
+	if !codegen_output.status.success() {
+		eprint!(
+			" == [Ecsact Codegen Error] ==\n{}",
+			&std::str::from_utf8(&codegen_output.stderr).unwrap()
+		);
+		return;
+	}
 
 	Command::new("rustfmt")
 		.arg("src/example_ecsact.rs")

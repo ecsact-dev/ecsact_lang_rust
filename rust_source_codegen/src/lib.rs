@@ -143,10 +143,10 @@ fn create_system_like_rust_mod(
 
 	let mut child_mods: Vec<proc_macro2::TokenStream> = Vec::new();
 
-	for child_id in meta::get_child_system_ids(sys_like_id) {
+	for child_id in dbg!(meta::get_child_system_ids(sys_like_id)) {
 		child_mods.push(create_system_like_rust_mod(
 			child_id.into(),
-			&(decl_name.to_owned() + "."),
+			&(decl_full_name.to_owned() + "."),
 		));
 	}
 

@@ -8,7 +8,7 @@ pub mod support;
 /// type safety when passing ids to the Ecsact API.
 macro_rules! typed_id {
 	($type_name:ident) => {
-		#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+		#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 		#[repr(transparent)]
 		pub struct $type_name(i32);
 
