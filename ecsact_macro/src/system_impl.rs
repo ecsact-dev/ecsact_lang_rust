@@ -40,11 +40,14 @@ pub fn system_impl(
 		proc_macro2::Span::call_site(),
 	);
 
+	let internal_context_type = make_internal_context_type(context_type);
+
 	let c_fn_impl = quote! {
 		#[allow(non_snake_case)]
+		#[no_mangle]
 		pub extern "C" fn #c_fn_impl_name(c_ctx: *mut ::std::ffi::c_void) {
 			#fn_def
-			let mut ctx = #context_type(c_ctx);
+			let mut ctx = #internal_context_type(c_ctx);
 			#fn_impl_name(&mut ctx);
 		}
 	};
@@ -52,6 +55,21 @@ pub fn system_impl(
 	proc_macro::TokenStream::from(quote! {
 		#c_fn_impl
 	})
+}
+
+fn make_internal_context_type(
+	context_type: &syn::TypeReference,
+) -> proc_macro2::TokenStream {
+	let mut tokens: Vec<proc_macro2::TokenTree> =
+		context_type.to_token_stream().into_iter().collect();
+
+	let internal_ident =
+		proc_macro2::Ident::new("__Context", proc_macro2::Span::call_site());
+	let internal_ident_tt = proc_macro2::TokenTree::from(internal_ident);
+	let token_len = tokens.len();
+	tokens[token_len - 1] = internal_ident_tt;
+
+	proc_macro2::TokenStream::from_iter(dbg!(tokens).into_iter())
 }
 
 fn to_c_fn_impl_name(ecsact_full_qualified_name: &str) -> String {
