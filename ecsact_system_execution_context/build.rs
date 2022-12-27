@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-	println!("cargo:rerun-if-changed=src/dylib_wrapper.h");
+	println!("cargo:rerun-if-changed=src/wrapper.h");
 
 	let ecsact_config = json::parse(&String::from_utf8_lossy(
 		&Command::new("ecsact")

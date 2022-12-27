@@ -16,7 +16,3 @@ ecsact_system_execution_context = { path = "../ecsact_system_execution_context" 
 [build-dependencies]
 ecsact_rust_source_codegen = { path = "../rust_source_codegen" }
 
-[build]
-target = "wasm32-unknown-unknown"
-linker-flavor = "em"
-

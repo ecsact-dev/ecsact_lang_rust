@@ -69,7 +69,7 @@ fn make_internal_context_type(
 	let token_len = tokens.len();
 	tokens[token_len - 1] = internal_ident_tt;
 
-	proc_macro2::TokenStream::from_iter(dbg!(tokens).into_iter())
+	proc_macro2::TokenStream::from_iter(tokens.into_iter())
 }
 
 fn to_c_fn_impl_name(ecsact_full_qualified_name: &str) -> String {
