@@ -24,7 +24,9 @@ fn to_rust_type(t: ecsact::FieldType) -> proc_macro2::TokenStream {
 		ecsact::FieldType::I32 { length } => rust_array_maybe(length, "i32"),
 		ecsact::FieldType::U32 { length } => rust_array_maybe(length, "u32"),
 		ecsact::FieldType::F32 { length } => rust_array_maybe(length, "f32"),
-		ecsact::FieldType::Entity { length } => rust_array_maybe(length, "i32"),
+		ecsact::FieldType::Entity { length } => {
+			rust_array_maybe(length, "::ecsact::EntityId")
+		}
 		ecsact::FieldType::Enum { id: _, length: _ } => todo!(),
 	}
 }
@@ -186,8 +188,15 @@ fn create_system_like_rust_mod(
 		}
 	}
 
-	let add_fn = make_context_add_fn(&allow_add_fn);
 	let addable_trait = make_context_addable_trait(&allow_add_fn);
+	let removable_trait = make_context_removable_trait(&allow_remove_fn);
+	let gettable_trait = make_context_gettable_trait(&allow_get_fn);
+	let updatable_trait = make_context_updatable_trait(&allow_update_fn);
+
+	let add_fn = make_context_add_fn(&allow_add_fn);
+	let remove_fn = make_context_remove_fn(&allow_remove_fn);
+	let get_fn = make_context_get_fn(&allow_get_fn);
+	let update_fn = make_context_update_fn(&allow_get_fn);
 
 	quote! {
 		#[allow(non_snake_case)]
@@ -195,15 +204,23 @@ fn create_system_like_rust_mod(
 			pub const ID: i32 = #sys_like_id_lit;
 
 			#addable_trait
+			#removable_trait
+			#gettable_trait
+			#updatable_trait
 
 			#[repr(transparent)]
 			pub struct __Context(pub *mut ::std::ffi::c_void);
 
 			impl __Context {
+				#get_fn
+				#update_fn
 				#add_fn
+				#remove_fn
 			}
 
 			#(#child_mods)*
+
+			pub type Context = __Context;
 		}
 	}
 }
@@ -221,6 +238,74 @@ fn make_context_add_fn(
 				::ecsact_system_execution_context::add(
 					::ecsact_system_execution_context::Context::new(self.0),
 					comp,
+				);
+			}
+		}
+	})
+}
+
+fn make_context_remove_fn(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	Some(quote! {
+		pub fn remove<T: __RemovableComponent + ::ecsact::ComponentLike>(
+			&mut self,
+		) {
+			unsafe {
+				::ecsact_system_execution_context::remove(
+					::ecsact_system_execution_context::Context::new(self.0),
+					T::ID,
+				);
+			}
+		}
+	})
+}
+
+fn make_context_get_fn(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	Some(quote! {
+		pub fn get<T: __GettableComponent + ::ecsact::ComponentLike>(
+			&mut self,
+		) -> T {
+			unsafe {
+				let mut component: T =
+					::std::mem::MaybeUninit::uninit().assume_init();
+				::ecsact_system_execution_context::get(
+					::ecsact_system_execution_context::Context::new(self.0),
+					&mut component,
+				);
+				component
+			}
+
+		}
+	})
+}
+
+fn make_context_update_fn(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	Some(quote! {
+		pub fn update<T: __UpdatableComponent + ::ecsact::ComponentLike>(
+			&mut self,
+			component: &T,
+		) {
+			unsafe {
+				::ecsact_system_execution_context::update(
+					::ecsact_system_execution_context::Context::new(self.0),
+					component,
 				);
 			}
 		}
@@ -250,6 +335,87 @@ fn make_context_addable_trait(
 
 	Some(quote! {
 		pub trait __AddableComponent: ecsact::ComponentLike {}
+		#(#comp_trait_impls)*
+	})
+}
+
+fn make_context_removable_trait(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	let comp_trait_impls: Vec<proc_macro2::TokenStream> = comps
+		.iter()
+		.cloned()
+		.map(|comp_id| {
+			let comp_full_name = meta::decl_full_name(comp_id.into());
+			let comp_ident =
+				ecsact::support::ecsact_ident_to_rust_ident(&comp_full_name);
+
+			quote! {
+				impl __RemovableComponent for crate::#comp_ident {}
+			}
+		})
+		.collect();
+
+	Some(quote! {
+		pub trait __RemovableComponent: ecsact::ComponentLike {}
+		#(#comp_trait_impls)*
+	})
+}
+
+fn make_context_gettable_trait(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	let comp_trait_impls: Vec<proc_macro2::TokenStream> = comps
+		.iter()
+		.cloned()
+		.map(|comp_id| {
+			let comp_full_name = meta::decl_full_name(comp_id.into());
+			let comp_ident =
+				ecsact::support::ecsact_ident_to_rust_ident(&comp_full_name);
+
+			quote! {
+				impl __GettableComponent for crate::#comp_ident {}
+			}
+		})
+		.collect();
+
+	Some(quote! {
+		pub trait __GettableComponent: ecsact::ComponentLike {}
+		#(#comp_trait_impls)*
+	})
+}
+
+fn make_context_updatable_trait(
+	comps: &Vec<ecsact::ComponentLikeId>,
+) -> Option<proc_macro2::TokenStream> {
+	if comps.is_empty() {
+		return None;
+	}
+
+	let comp_trait_impls: Vec<proc_macro2::TokenStream> = comps
+		.iter()
+		.cloned()
+		.map(|comp_id| {
+			let comp_full_name = meta::decl_full_name(comp_id.into());
+			let comp_ident =
+				ecsact::support::ecsact_ident_to_rust_ident(&comp_full_name);
+
+			quote! {
+				impl __UpdatableComponent for crate::#comp_ident {}
+			}
+		})
+		.collect();
+
+	Some(quote! {
+		pub trait __UpdatableComponent: ecsact::ComponentLike {}
 		#(#comp_trait_impls)*
 	})
 }

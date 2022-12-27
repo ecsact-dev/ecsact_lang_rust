@@ -57,7 +57,7 @@ pub mod example {
 	}
 	#[repr(C)]
 	pub struct Attacking {
-		pub target: i32,
+		pub target: ::ecsact::EntityId,
 	}
 	impl ::ecsact::Component for Attacking {
 		const ID: ::ecsact::ComponentId =
@@ -91,19 +91,43 @@ pub mod example {
 				}
 			}
 		}
+		pub type Context = __Context;
 	}
 	#[allow(non_snake_case)]
 	pub mod Gravity {
 		pub const ID: i32 = 7;
+		pub trait __GettableComponent: ecsact::ComponentLike {}
+		impl __GettableComponent for crate::example::Position {}
+		pub trait __UpdatableComponent: ecsact::ComponentLike {}
+		impl __UpdatableComponent for crate::example::Position {}
 		#[repr(transparent)]
 		pub struct __Context(pub *mut ::std::ffi::c_void);
-		impl __Context {}
-		#[allow(non_snake_case)]
-		pub mod OtherGravity {
-			pub const ID: i32 = 8;
-			#[repr(transparent)]
-			pub struct __Context(pub *mut ::std::ffi::c_void);
-			impl __Context {}
+		impl __Context {
+			pub fn get<T: __GettableComponent + ::ecsact::ComponentLike>(
+				&mut self,
+			) -> T {
+				unsafe {
+					let mut component: T =
+						::std::mem::MaybeUninit::uninit().assume_init();
+					::ecsact_system_execution_context::get(
+						::ecsact_system_execution_context::Context::new(self.0),
+						&mut component,
+					);
+					component
+				}
+			}
+			pub fn update<T: __UpdatableComponent + ::ecsact::ComponentLike>(
+				&mut self,
+				component: &T,
+			) {
+				unsafe {
+					::ecsact_system_execution_context::update(
+						::ecsact_system_execution_context::Context::new(self.0),
+						component,
+					);
+				}
+			}
 		}
+		pub type Context = __Context;
 	}
 }

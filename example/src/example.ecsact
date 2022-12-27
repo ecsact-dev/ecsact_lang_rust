@@ -29,9 +29,5 @@ action Attack {
 
 system Gravity {
 	readwrite Position;
-
-	system OtherGravity {
-		readwrite Position;
-	}
 }
 

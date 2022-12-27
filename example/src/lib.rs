@@ -1,16 +1,11 @@
 // include!(concat!(env!("OUT_DIR"), "/example.ecsact.rs"));
 
 pub mod example_ecsact;
-
 use example_ecsact::example;
 
-// TODO(zaucy): This function is what we need to export to a DLL or WebAssembly
-//              The plan is to make a macro to simplify this.
-// #[allow(non_snake_case)]
-// extern "C" fn example__Gravity(ctx: *mut c_void) {}
-
-#[ecsact_macro::system_impl("example.Attack")]
-fn _my_example_impl(ctx: &mut example::Attack::__Context) {
-	let comp = example::Attacking { target: -1 };
-	ctx.add(&comp);
+#[ecsact_macro::system_impl("example.Gravity")]
+fn _impl(ctx: &mut example::Gravity::__Context) {
+	let mut pos: example::Position = ctx.get();
+	pos.y -= 9.81;
+	ctx.update(&pos);
 }

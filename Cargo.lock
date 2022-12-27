@@ -103,12 +103,10 @@ dependencies = [
 name = "ecsact_rust_source_codegen"
 version = "0.1.0"
 dependencies = [
- "bindgen",
  "ecsact",
  "ecsact_dylib_runtime",
  "ecsact_macro",
  "indented",
- "json",
  "proc-macro2",
  "quote",
 ]
