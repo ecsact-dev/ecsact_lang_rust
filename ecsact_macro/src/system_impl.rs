@@ -35,6 +35,7 @@ pub fn system_impl(
 	);
 
 	let c_fn_impl = quote! {
+		#[allow(non_snake_case)]
 		pub extern "C" fn #c_fn_impl_name(c_ctx: *mut ::std::ffi::c_void) {
 			let mut ctx = #rust_qualified_name::__Context(c_ctx);
 			#fn_impl_name(&mut ctx);

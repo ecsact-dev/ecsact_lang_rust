@@ -33,7 +33,7 @@ where
 			}
 		} else {
 			if is_pub {
-				panic!("Ecsact codegen plugin entry fn must not be public");
+				panic!("must not be public");
 			}
 
 			return Some(ident);
