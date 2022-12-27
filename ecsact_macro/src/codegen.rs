@@ -1,13 +1,6 @@
 use quote::quote;
 
-use crate::internal::find_fn_name_ident;
-
-fn strip_quotes(input: &str) -> Option<&str> {
-	if input.chars().filter(|&c| c == '"').count() != 2 {
-		panic!("No quotes in your plugin file extension name. You donkey!");
-	}
-	input.strip_prefix('"')?.strip_suffix('"')
-}
+use crate::internal::{find_fn_name_ident, strip_quotes};
 
 pub fn plugin_entry(
 	attr: proc_macro::TokenStream,

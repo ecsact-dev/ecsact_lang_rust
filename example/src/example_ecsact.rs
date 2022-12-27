@@ -98,5 +98,12 @@ pub mod example {
 		#[repr(transparent)]
 		pub struct __Context(pub *mut ::std::ffi::c_void);
 		impl __Context {}
+		#[allow(non_snake_case)]
+		pub mod OtherGravity {
+			pub const ID: i32 = 8;
+			#[repr(transparent)]
+			pub struct __Context(pub *mut ::std::ffi::c_void);
+			impl __Context {}
+		}
 	}
 }

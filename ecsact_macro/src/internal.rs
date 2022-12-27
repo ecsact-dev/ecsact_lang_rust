@@ -1,3 +1,10 @@
+pub(crate) fn strip_quotes(input: &str) -> Option<&str> {
+	if input.chars().filter(|&c| c == '"').count() != 2 {
+		panic!("Quotes are not allowed in attribute string literal");
+	}
+	input.strip_prefix('"')?.strip_suffix('"')
+}
+
 pub(crate) fn find_fn_name_ident<I>(tokens: I) -> Option<proc_macro2::Ident>
 where
 	I: IntoIterator<Item = proc_macro2::TokenTree>,

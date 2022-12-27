@@ -1,7 +1,7 @@
 use ecsact::support::ecsact_ident_to_rust_ident;
 use quote::quote;
 
-use crate::internal::find_fn_name_ident;
+use crate::internal::{find_fn_name_ident, strip_quotes};
 
 fn validate_attr(attr: &str) {
 	if attr.is_empty() {
@@ -17,11 +17,16 @@ pub fn system_impl(
 ) -> proc_macro::TokenStream {
 	let fn_def = proc_macro2::TokenStream::from(fn_def);
 
-	let ecsact_full_qualified_name: String = attr.to_string();
-	validate_attr(&ecsact_full_qualified_name);
+	let ecsact_name_lit = attr.to_string();
+	let ecsact_full_qualified_name =
+		strip_quotes(&ecsact_name_lit).expect(concat!(
+			"String literal of Ecsact fully qualified system name. ",
+			"Such as 'example.MySystem'"
+		));
+	validate_attr(ecsact_full_qualified_name);
 
 	let rust_qualified_name =
-		ecsact_ident_to_rust_ident(&ecsact_full_qualified_name);
+		ecsact_ident_to_rust_ident(ecsact_full_qualified_name);
 
 	let fn_impl_name = find_fn_name_ident(fn_def.clone()).unwrap();
 	let c_fn_impl_name = proc_macro2::Ident::new(
@@ -42,6 +47,6 @@ pub fn system_impl(
 	})
 }
 
-fn to_c_fn_impl_name(ecsact_full_qualified_name: String) -> String {
+fn to_c_fn_impl_name(ecsact_full_qualified_name: &str) -> String {
 	ecsact_full_qualified_name.replace('.', "__")
 }
