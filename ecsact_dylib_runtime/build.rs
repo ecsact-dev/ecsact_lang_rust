@@ -5,14 +5,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-	// Tell cargo to look for shared libraries in the specified directory
-	// println!("cargo:rustc-link-search=/path/to/lib");
-
-	// Tell cargo to tell rustc to link the system bzip2
-	// shared library.
-	// println!("cargo:rustc-link-lib=bz2");
-
-	// Tell cargo to invalidate the built crate whenever the wrapper changes
 	println!("cargo:rerun-if-changed=src/dylib_wrapper.h");
 	println!("cargo:rerun-if-changed=src/dylib.cc");
 

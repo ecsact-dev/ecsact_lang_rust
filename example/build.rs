@@ -2,7 +2,6 @@ use std::fs::File;
 use std::process::Command;
 
 fn main() {
-	// TODO(zaucy): Figure out how to get this path correctly
 	let rust_plugin_path = "../target/debug/ecsact_rust_source_codegen.dll";
 	let ecsact_src_path = "src/example.ecsact";
 

@@ -1,5 +1,3 @@
-// include!(concat!(env!("OUT_DIR"), "/example.ecsact.rs"));
-
 pub mod example_ecsact;
 use example_ecsact::example;
 
