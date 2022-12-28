@@ -1,0 +1,10 @@
+[workspace]
+members = [
+	"rust_source_codegen",
+	"ecsact",
+	"ecsact_dylib_runtime",
+	"example",
+	"ecsact_macro",
+	"ecsact_system_execution_context",
+]
+

@@ -1,0 +1,33 @@
+package example;
+
+enum DamageType {
+	Normal = 0;
+	Piercing = 1;
+}
+
+component Player;
+
+component Health {
+	f32 value;
+}
+
+component Position {
+	f32 x;
+	f32 y;
+}
+
+component Attacking {
+	entity target;
+}
+
+action Attack {
+	entity target;
+
+	adds Attacking;
+	include Player;
+}
+
+system Gravity {
+	readwrite Position;
+}
+
