@@ -1,9 +1,24 @@
 // Generated code doesn't follow rust naming convention
-#[allow(non_camel_case_types)]
-#[allow(non_upper_case_globals)]
-mod internal {
-	include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+
+mod bindings;
+use bindings::{
+	// format per line
+	ecsact_system_execution_context,
+	ecsact_system_execution_context_action,
+	ecsact_system_execution_context_add,
+	ecsact_system_execution_context_entity,
+	ecsact_system_execution_context_generate,
+	ecsact_system_execution_context_get,
+	ecsact_system_execution_context_has,
+	ecsact_system_execution_context_id,
+	ecsact_system_execution_context_other,
+	ecsact_system_execution_context_parent,
+	ecsact_system_execution_context_remove,
+	ecsact_system_execution_context_same,
+	ecsact_system_execution_context_update,
+};
 
 #[repr(transparent)]
 pub struct Context(*mut ::std::ffi::c_void);
@@ -25,8 +40,8 @@ impl Context {
 /// System implementations only with `readwrite` capabilities may use this
 /// function. https://ecsact.dev/docs/system-impl
 pub unsafe fn update<C: ecsact::ComponentLike>(ctx: Context, component: &C) {
-	crate::internal::ecsact_system_execution_context_update(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_update(
+		ctx.0 as *mut ecsact_system_execution_context,
 		<C as ecsact::ComponentLike>::ID.into(),
 		component as *const _ as *const std::ffi::c_void,
 	);
@@ -43,8 +58,8 @@ pub unsafe fn get<C: ecsact::ComponentLike>(
 	ctx: Context,
 	out_component: &mut C,
 ) {
-	crate::internal::ecsact_system_execution_context_get(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_get(
+		ctx.0 as *mut ecsact_system_execution_context,
 		<C as ecsact::ComponentLike>::ID.into(),
 		out_component as *mut _ as *mut std::ffi::c_void,
 	);
@@ -58,8 +73,8 @@ pub unsafe fn get<C: ecsact::ComponentLike>(
 /// System implementations only with `add` capabilities may use this function.
 /// https://ecsact.dev/docs/system-impl
 pub unsafe fn add<C: ecsact::ComponentLike>(ctx: Context, component: &C) {
-	crate::internal::ecsact_system_execution_context_add(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_add(
+		ctx.0 as *mut ecsact_system_execution_context,
 		<C as ecsact::ComponentLike>::ID.into(),
 		component as *const _ as *const std::ffi::c_void,
 	);
@@ -73,8 +88,8 @@ pub unsafe fn add<C: ecsact::ComponentLike>(ctx: Context, component: &C) {
 /// System implementations only with `remove` capabilities may use this
 /// function. https://ecsact.dev/docs/system-impl
 pub unsafe fn remove(ctx: Context, id: ecsact::ComponentLikeId) {
-	crate::internal::ecsact_system_execution_context_remove(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_remove(
+		ctx.0 as *mut ecsact_system_execution_context,
 		id.into(),
 	);
 }
@@ -87,8 +102,8 @@ pub unsafe fn remove(ctx: Context, id: ecsact::ComponentLikeId) {
 /// System implementations only with `optional` capabilities may use this
 /// function. https://ecsact.dev/docs/system-impl
 pub unsafe fn has(ctx: Context, id: ecsact::ComponentLikeId) -> bool {
-	crate::internal::ecsact_system_execution_context_has(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_has(
+		ctx.0 as *mut ecsact_system_execution_context,
 		id.into(),
 	)
 }
@@ -97,8 +112,8 @@ pub unsafe fn has(ctx: Context, id: ecsact::ComponentLikeId) -> bool {
 /// contexts instead.
 pub fn id(ctx: Context) -> ecsact::SystemLikeId {
 	unsafe {
-		crate::internal::ecsact_system_execution_context_id(
-			ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+		ecsact_system_execution_context_id(
+			ctx.0 as *mut ecsact_system_execution_context,
 		)
 		.into()
 	}
@@ -114,8 +129,8 @@ pub unsafe fn action<C: ecsact::ComponentLike>(
 	ctx: Context,
 	out_action: &mut C,
 ) {
-	crate::internal::ecsact_system_execution_context_action(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_action(
+		ctx.0 as *mut ecsact_system_execution_context,
 		out_action as *mut _ as *mut std::ffi::c_void,
 	);
 }
@@ -124,9 +139,9 @@ pub unsafe fn action<C: ecsact::ComponentLike>(
 /// contexts instead.
 pub fn same(ctx_a: Context, ctx_b: Context) -> bool {
 	unsafe {
-		crate::internal::ecsact_system_execution_context_same(
-			ctx_a.0 as *mut crate::internal::ecsact_system_execution_context,
-			ctx_b.0 as *mut crate::internal::ecsact_system_execution_context,
+		ecsact_system_execution_context_same(
+			ctx_a.0 as *mut ecsact_system_execution_context,
+			ctx_b.0 as *mut ecsact_system_execution_context,
 		)
 	}
 }
@@ -138,8 +153,8 @@ pub fn same(ctx_a: Context, ctx_b: Context) -> bool {
 ///
 /// Only nested systems may use this function. https://ecsact.dev/docs/system-impl
 pub unsafe fn parent(ctx: Context) -> Context {
-	Context(crate::internal::ecsact_system_execution_context_parent(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	Context(ecsact_system_execution_context_parent(
+		ctx.0 as *mut ecsact_system_execution_context,
 	) as *mut std::ffi::c_void)
 }
 
@@ -147,8 +162,8 @@ pub unsafe fn parent(ctx: Context) -> Context {
 /// contexts instead.
 pub fn entity(ctx: Context) -> i32 {
 	unsafe {
-		crate::internal::ecsact_system_execution_context_entity(
-			ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+		ecsact_system_execution_context_entity(
+			ctx.0 as *mut ecsact_system_execution_context,
 		)
 	}
 }
@@ -162,8 +177,8 @@ pub fn entity(ctx: Context) -> i32 {
 /// association. https://ecsact.dev/docs/system-impl
 pub unsafe fn other(ctx: Context, entity: i32) -> Context {
 	unsafe {
-		Context(crate::internal::ecsact_system_execution_context_other(
-			ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+		Context(ecsact_system_execution_context_other(
+			ctx.0 as *mut ecsact_system_execution_context,
 			entity,
 		) as *mut _)
 	}
@@ -178,8 +193,8 @@ pub unsafe fn other(ctx: Context, entity: i32) -> Context {
 /// block. https://ecsact.dev/docs/system-impl
 pub unsafe fn generate(ctx: Context) {
 	// TODO
-	crate::internal::ecsact_system_execution_context_generate(
-		ctx.0 as *mut crate::internal::ecsact_system_execution_context,
+	ecsact_system_execution_context_generate(
+		ctx.0 as *mut ecsact_system_execution_context,
 		0,
 		0 as _,
 		0 as _,
