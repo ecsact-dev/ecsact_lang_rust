@@ -3,6 +3,30 @@ mod system_impl;
 
 mod internal;
 
+/// Mark a function as an Ecsact system implementation. A C function will be
+/// created for you that will call the marked function with safe context struct
+/// from the Ecsact code generator.
+///
+/// See: https://ecsact.dev/docs/system-impl
+///
+/// # Example
+///
+/// Given the following Ecsact file contents:
+///
+/// ```ecsact
+/// package example;
+/// component Position { f32 x; f32 y; }
+/// system Gravity { readwrite Position; }
+/// ```
+///
+/// A system implementation may be created with the proc macro like so:
+///
+/// ```rust
+/// #[ecsact_macro::system_impl("example.Gravity")]
+/// fn gravity(ctx: &mut example::Gravity::Context) {
+///     todo!()
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn system_impl(
 	attr: proc_macro::TokenStream,
