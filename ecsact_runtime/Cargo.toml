@@ -1,0 +1,13 @@
+[package]
+name = "ecsact_runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ecsact = { path = "../ecsact" }
+
+[build-dependencies]
+bindgen = "0.63.0"
+cc = "1.0.78"
+json = "0.12.4"
+

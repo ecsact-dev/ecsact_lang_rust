@@ -3,6 +3,8 @@ members = [
 	"rust_source_codegen",
 	"ecsact",
 	"ecsact_dylib_runtime",
+	"ecsact_runtime",
+	"ecsact_rtb",
 	"example",
 	"ecsact_macro",
 	"ecsact_system_execution_context",

@@ -85,6 +85,7 @@ version = "0.1.0"
 dependencies = [
  "ecsact",
  "ecsact_macro",
+ "ecsact_rtb",
  "ecsact_rust_source_codegen",
  "ecsact_system_execution_context",
 ]
@@ -97,6 +98,23 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ecsact_rtb"
+version = "0.1.0"
+dependencies = [
+ "json",
+]
+
+[[package]]
+name = "ecsact_runtime"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cc",
+ "ecsact",
+ "json",
 ]
 
 [[package]]
