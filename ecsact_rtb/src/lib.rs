@@ -1,4 +1,5 @@
 use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use json::JsonValue;
@@ -15,9 +16,20 @@ impl EcsactRuntime {
 	}
 }
 
-#[derive(Default)]
 pub struct EcsactRuntimeBuilder {
 	srcs: Vec<String>,
+	output_dir: String,
+	lib_rs_path: String,
+}
+
+impl Default for EcsactRuntimeBuilder {
+	fn default() -> Self {
+		Self {
+			srcs: Vec::new(),
+			output_dir: "ecsact_rtb_out".to_string(),
+			lib_rs_path: "src/lib.rs".to_string(),
+		}
+	}
 }
 
 impl EcsactRuntimeBuilder {
@@ -26,7 +38,43 @@ impl EcsactRuntimeBuilder {
 		self
 	}
 
-	pub fn build(&self) -> EcsactRuntime {
+	pub fn output_dir(&mut self, output_dir: &str) {
+		self.output_dir = output_dir.to_string();
+	}
+
+	pub fn lib_rs_path(&mut self, lib_rs_path: &str) {
+		self.lib_rs_path = lib_rs_path.to_string();
+	}
+
+	fn ecsact_codegen(&self) {
+		// TODO(zaucy): This path is only temporary until the Ecsact SDK with
+		//              the rust codgen is released.
+		let rust_plugin_path = "../target/debug/ecsact_rust_source_codegen.dll";
+
+		let codegen_output = Command::new("ecsact")
+			.arg("codegen")
+			.args(&self.srcs)
+			.arg("-p")
+			.arg(rust_plugin_path)
+			.arg("-o")
+			.arg(&self.output_dir)
+			.output()
+			.unwrap();
+
+		if !codegen_output.status.success() {
+			eprint!(
+				" == [Ecsact Codegen Error] ==\n{}",
+				&std::str::from_utf8(&codegen_output.stderr).unwrap()
+			);
+			return;
+		}
+
+		for src in &self.srcs {
+			Command::new("rustfmt").arg(src).spawn().unwrap();
+		}
+	}
+
+	fn build_runtime_library(&self) -> EcsactRuntime {
 		let crate_name = std::env::var("CARGO_PKG_NAME").unwrap();
 		let out_dir = std::env::var("OUT_DIR").unwrap();
 		let out_rt =
@@ -81,11 +129,122 @@ impl EcsactRuntimeBuilder {
 					),
 				}
 			} else {
-				println!("cargo:warning=INVALD JSON{}", line_str);
+				panic!("Invalid output from Ecsact RTB. May be a bug with the ecsact_rtb crate or the wrong version of ecsact_rtb is being used.");
 			}
 		}
 
 		cmd.wait().unwrap();
+
+		runtime
+	}
+
+	fn build_runtime_bindings(&self) {
+		let ecsact_config = json::parse(&String::from_utf8_lossy(
+			&Command::new("ecsact")
+				.arg("config")
+				.output()
+				.expect("ecsact config failed")
+				.stdout,
+		))
+		.unwrap();
+
+		let include_dir = ecsact_config["include_dir"].as_str().unwrap();
+
+		let bindings = bindgen::builder()
+			.allowlist_var("ecsact_.*")
+			.allowlist_type("ecsact_.*")
+			.allowlist_function("ecsact_.*")
+			.newtype_enum("ecsact_.*")
+			.clang_arg("-I".to_string() + include_dir)
+			.header_contents("wrapper.h", include_str!("wrapper.h"))
+			.parse_callbacks(Box::new(bindgen::CargoCallbacks))
+			.generate()
+			.expect("Unable to generate bindings");
+
+		bindings
+			.write_to_file(
+				self.output_dir.to_string() + "/bindings.generated.rs",
+			)
+			.expect("Couldn't write bindings!");
+	}
+
+	pub fn build(&self) -> EcsactRuntime {
+		let manifest_dir = std::env::var("CARGO_MANIFEST_DIR");
+		println!("cargo:warning={}", &manifest_dir.unwrap());
+
+		self.build_runtime_bindings();
+		self.ecsact_codegen();
+
+		let template_files = vec![
+			("core.rs", include_str!("template/core.rs")),
+			(
+				"system_execution_context.rs",
+				include_str!("template/system_execution_context.rs"),
+			),
+		];
+
+		let lib_rs_path_abs = std::fs::canonicalize(&self.lib_rs_path).unwrap();
+		let output_dir_abs = std::fs::canonicalize(&self.output_dir).unwrap();
+		let output_dir_rel = pathdiff::diff_paths(
+			&output_dir_abs,
+			lib_rs_path_abs.parent().unwrap(),
+		)
+		.unwrap();
+
+		let mut generated_modules_str = "".to_string();
+
+		for src in &self.srcs {
+			let src_path: PathBuf = src.into();
+			let src_rs_path = src_path.with_extension("ecsact.rs");
+			let src_rs_file_name = src_rs_path.file_name().unwrap();
+			generated_modules_str.push_str(
+				format!(
+					"include!(r\"{}/{}\");\n",
+					&output_dir_rel.to_str().unwrap(),
+					src_rs_file_name.to_str().unwrap()
+				)
+				.as_str(),
+			);
+		}
+
+		std::fs::create_dir_all(lib_rs_path_abs.parent().unwrap()).unwrap();
+		std::fs::write(
+			&lib_rs_path_abs,
+			format!(
+				include_str!("template/crate_lib.rs"),
+				output_dir = &output_dir_rel.to_str().unwrap(),
+				generated_modules = &generated_modules_str,
+			),
+		)
+		.unwrap();
+
+		for (file_name, file_content) in template_files {
+			let local_path =
+				PathBuf::from(self.output_dir.to_string() + "/" + file_name);
+			std::fs::create_dir_all(local_path.parent().unwrap()).unwrap();
+			// TODO(zaucy): Set readonly permissions to prevent mistakes
+			std::fs::write(local_path, file_content).unwrap();
+		}
+
+		let runtime = self.build_runtime_library();
+
+		for method in &runtime.available_methods {
+			println!("cargo:cfg={method}");
+		}
+
+		let output_dir =
+			std::path::Path::new(&runtime.output).parent().unwrap();
+		let output_file_no_ext = std::path::Path::new(&runtime.output)
+			.with_extension("")
+			.file_name()
+			.unwrap()
+			.to_owned();
+
+		println!("cargo:rustc-link-search={}", &output_dir.to_str().unwrap());
+		println!(
+			"cargo:rustc-link-lib={}",
+			&output_file_no_ext.to_str().unwrap()
+		);
 
 		runtime
 	}

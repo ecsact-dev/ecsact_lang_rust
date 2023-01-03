@@ -1,6 +1,2 @@
 /target
-*.generated.rs
-
-# Ecsact codegen output
-*.ecsact.*
 

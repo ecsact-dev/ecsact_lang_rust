@@ -1,10 +1,6 @@
-include!("example.ecsact.rs");
+mod system_impls;
 
-// #[ecsact_macro::system_impl("example.Gravity")]
-// fn gravity(ctx: &mut example::Gravity::Context) {
-// 	let mut pos: example::Position = ctx.get();
-// 	pos.y -= 9.81;
-// 	ctx.update(&pos);
-// }
-
-fn main() {}
+fn main() {
+	let reg = ecsact_example::core::create_registry("Example Registry");
+	let entity = ecsact_example::core::create_entity(reg);
+}
