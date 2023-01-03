@@ -32,8 +32,9 @@ pub fn add_component<C: ecsact::Component>(
 }
 
 pub fn create_registry(registry_name: &str) -> RegistryId {
+	let registry_name_nul = registry_name.to_owned() + "\0";
 	let registry_name_cstr =
-		CStr::from_bytes_with_nul(registry_name.as_bytes()).unwrap();
+		CStr::from_bytes_with_nul(registry_name_nul.as_bytes()).unwrap();
 	unsafe { ecsact_create_registry(registry_name_cstr.as_ptr()).into() }
 }
 
