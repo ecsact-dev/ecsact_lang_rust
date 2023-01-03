@@ -155,6 +155,7 @@ impl EcsactRuntimeBuilder {
 			.allowlist_type("ecsact_.*")
 			.allowlist_function("ecsact_.*")
 			.newtype_enum("ecsact_.*")
+			.clang_arg("--target=wasm32-unknown-unknown")
 			.clang_arg("-I".to_string() + include_dir)
 			.header_contents("wrapper.h", include_str!("wrapper.h"))
 			.parse_callbacks(Box::new(bindgen::CargoCallbacks))
@@ -232,19 +233,26 @@ impl EcsactRuntimeBuilder {
 			println!("cargo:cfg={method}");
 		}
 
-		let output_dir =
-			std::path::Path::new(&runtime.output).parent().unwrap();
-		let output_file_no_ext = std::path::Path::new(&runtime.output)
-			.with_extension("")
-			.file_name()
-			.unwrap()
-			.to_owned();
+		let target = std::env::var("TARGET").unwrap();
 
-		println!("cargo:rustc-link-search={}", &output_dir.to_str().unwrap());
-		println!(
-			"cargo:rustc-link-lib={}",
-			&output_file_no_ext.to_str().unwrap()
-		);
+		if !target.contains("wasm") {
+			let output_dir =
+				std::path::Path::new(&runtime.output).parent().unwrap();
+			let output_file_no_ext = std::path::Path::new(&runtime.output)
+				.with_extension("")
+				.file_name()
+				.unwrap()
+				.to_owned();
+
+			println!(
+				"cargo:rustc-link-search={}",
+				&output_dir.to_str().unwrap()
+			);
+			println!(
+				"cargo:rustc-link-lib={}",
+				&output_file_no_ext.to_str().unwrap()
+			);
+		}
 
 		runtime
 	}
