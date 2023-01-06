@@ -31,8 +31,19 @@ fn to_rust_type(t: ecsact::FieldType) -> proc_macro2::TokenStream {
 	}
 }
 
+fn is_action(
+	pkg_id: ecsact::PackageId,
+	sys_like_id: ecsact::SystemLikeId,
+) -> bool {
+	// this is ecessive
+	meta::get_action_ids(pkg_id)
+		.into_iter()
+		.map(|id| -> ecsact::SystemLikeId { id.into() })
+		.any(|id| id == sys_like_id)
+}
+
 #[ecsact_macro::plugin_entry("rs")]
-fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
+fn rust_source_codegen_entry(ctx: &mut ecsact::CodegenPluginContext) {
 	write!(ctx, "/// Generated file - DO NOT EDIT\n\n").unwrap();
 
 	let pkg_name = meta::package_name(ctx.package_id());
@@ -120,8 +131,15 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 	}
 
 	for sys_like_id in meta::get_top_level_systems(ctx.package_id()) {
+		let type_id = if is_action(ctx.package_id(), sys_like_id) {
+			proc_macro2::Ident::new("ActionId", proc_macro2::Span::call_site())
+		} else {
+			proc_macro2::Ident::new("SystemId", proc_macro2::Span::call_site())
+		};
+
 		let sys_mod = create_system_like_rust_mod(
 			sys_like_id,
+			type_id,
 			&(pkg_name.to_owned() + "."),
 		);
 		writeln!(ctx, "\t{sys_mod}").unwrap();
@@ -132,6 +150,7 @@ fn woohoo(ctx: &mut ecsact::CodegenPluginContext) {
 
 fn create_system_like_rust_mod(
 	sys_like_id: ecsact::SystemLikeId,
+	type_id: proc_macro2::Ident,
 	strip_prefix: &str,
 ) -> proc_macro2::TokenStream {
 	let decl_full_name = meta::decl_full_name(sys_like_id.into());
@@ -148,6 +167,7 @@ fn create_system_like_rust_mod(
 	for child_id in dbg!(meta::get_child_system_ids(sys_like_id)) {
 		child_mods.push(create_system_like_rust_mod(
 			child_id.into(),
+			proc_macro2::Ident::new("SystemId", proc_macro2::Span::call_site()),
 			&(decl_full_name.to_owned() + "."),
 		));
 	}
@@ -201,7 +221,9 @@ fn create_system_like_rust_mod(
 	quote! {
 		#[allow(non_snake_case)]
 		pub mod #decl_name_ident {
-			pub const ID: i32 = #sys_like_id_lit;
+			pub const ID: ::ecsact::#type_id = unsafe {
+				::ecsact::#type_id::new(#sys_like_id_lit)
+			};
 
 			#addable_trait
 			#removable_trait

@@ -1,8 +1,13 @@
 mod system_impls;
 
-use ecsact_example::{core, example};
+use ecsact_example::{core, dynamic, example};
 
 fn main() {
+	dynamic::set_system_execution_impl(
+		example::Gravity::ID.into(),
+		system_impls::example__Gravity,
+	);
+
 	let reg = core::create_registry("Example Registry");
 	let entity = core::create_entity(reg);
 	core::add_component(reg, entity, &example::Position { x: 0.0, y: 0.0 });

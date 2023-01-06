@@ -70,7 +70,8 @@ impl EcsactRuntimeBuilder {
 		}
 
 		for src in &self.srcs {
-			Command::new("rustfmt").arg(src).spawn().unwrap();
+			let src_rs = self.output_dir.to_owned() + "/" + src + ".rs";
+			Command::new("rustfmt").arg(&src_rs).spawn().unwrap();
 		}
 	}
 
@@ -170,14 +171,12 @@ impl EcsactRuntimeBuilder {
 	}
 
 	pub fn build(&self) -> EcsactRuntime {
-		let manifest_dir = std::env::var("CARGO_MANIFEST_DIR");
-		println!("cargo:warning={}", &manifest_dir.unwrap());
-
 		self.build_runtime_bindings();
 		self.ecsact_codegen();
 
 		let template_files = vec![
 			("core.rs", include_str!("template/core.rs")),
+			("dynamic.rs", include_str!("template/dynamic.rs")),
 			(
 				"system_execution_context.rs",
 				include_str!("template/system_execution_context.rs"),

@@ -63,12 +63,14 @@ pub mod meta {
 		// force rustfmt to put each use on their own line
 		ecsact_meta_action_name,
 		ecsact_meta_component_name,
+		ecsact_meta_count_actions,
 		ecsact_meta_count_child_systems,
 		ecsact_meta_count_components,
 		ecsact_meta_count_enum_values,
 		ecsact_meta_count_enums,
 		ecsact_meta_count_fields,
 		ecsact_meta_count_packages,
+		ecsact_meta_count_systems,
 		ecsact_meta_count_top_level_systems,
 		ecsact_meta_decl_full_name,
 		ecsact_meta_enum_name,
@@ -77,12 +79,14 @@ pub mod meta {
 		ecsact_meta_enum_value_name,
 		ecsact_meta_field_name,
 		ecsact_meta_field_type,
+		ecsact_meta_get_action_ids,
 		ecsact_meta_get_child_system_ids,
 		ecsact_meta_get_component_ids,
 		ecsact_meta_get_enum_ids,
 		ecsact_meta_get_enum_value_ids,
 		ecsact_meta_get_field_ids,
 		ecsact_meta_get_package_ids,
+		ecsact_meta_get_system_ids,
 		ecsact_meta_get_top_level_systems,
 		ecsact_meta_package_file_path,
 		ecsact_meta_package_name,
@@ -94,6 +98,50 @@ pub mod meta {
 
 	use crate::internal::ecsact_builtin_type as ebt;
 	use crate::internal::ecsact_type_kind;
+
+	pub fn count_actions(pkg_id: ecsact::PackageId) -> i32 {
+		unsafe { call_or_panic!(ecsact_meta_count_actions, pkg_id.into()) }
+	}
+
+	pub fn get_action_ids(pkg_id: ecsact::PackageId) -> Vec<ecsact::ActionId> {
+		let mut ids = vec![-1; count_actions(pkg_id) as usize];
+
+		if !ids.is_empty() {
+			unsafe {
+				call_or_panic!(
+					ecsact_meta_get_action_ids,
+					pkg_id.into(),
+					ids.len().try_into().unwrap(),
+					ids.as_mut_ptr() as *mut i32,
+					std::ptr::null_mut::<i32>()
+				)
+			}
+		}
+
+		ids.into_iter().map(|i| i.into()).collect()
+	}
+
+	pub fn count_systems(pkg_id: ecsact::PackageId) -> i32 {
+		unsafe { call_or_panic!(ecsact_meta_count_systems, pkg_id.into()) }
+	}
+
+	pub fn get_system_ids(pkg_id: ecsact::PackageId) -> Vec<ecsact::ActionId> {
+		let mut ids = vec![-1; count_systems(pkg_id) as usize];
+
+		if !ids.is_empty() {
+			unsafe {
+				call_or_panic!(
+					ecsact_meta_get_system_ids,
+					pkg_id.into(),
+					ids.len().try_into().unwrap(),
+					ids.as_mut_ptr() as *mut i32,
+					std::ptr::null_mut::<i32>()
+				)
+			}
+		}
+
+		ids.into_iter().map(|i| i.into()).collect()
+	}
 
 	pub fn count_child_systems(sys_like_id: ecsact::SystemLikeId) -> i32 {
 		unsafe {

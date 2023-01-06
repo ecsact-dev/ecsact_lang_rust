@@ -11,6 +11,10 @@ pub mod core {{
 	include!(r"{output_dir}/core.rs");
 }}
 
+pub mod dynamic {{
+	include!(r"{output_dir}/dynamic.rs");
+}}
+
 pub mod system_execution_context {{
 	include!(r"{output_dir}/system_execution_context.rs");
 }}
