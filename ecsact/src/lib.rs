@@ -1,5 +1,6 @@
+use std::collections::HashMap;
 use std::convert::From;
-use std::ffi::c_char;
+use std::ffi::{c_char, c_void};
 use std::fmt::{Error, Write};
 
 pub mod support;
@@ -191,4 +192,67 @@ pub trait System: SystemLike {
 
 pub trait SystemLike {
 	const ID: SystemLikeId;
+}
+
+type ComponentVoidDataCallback<'a> = Box<dyn Fn(EntityId, *const c_void) + 'a>;
+
+#[derive(Default)]
+pub struct ExecutionEventsCollector<'a> {
+	pub init_callbacks:
+		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
+	pub update_callbacks:
+		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
+	pub remove_callbacks:
+		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
+}
+
+impl<'a> ExecutionEventsCollector<'a> {
+	pub fn on_init<C: Component>(
+		mut self,
+		callback: &'a dyn Fn(EntityId, &C),
+	) -> Self {
+		self.init_callbacks.entry(<C as Component>::ID).or_default();
+		self.init_callbacks
+			.get_mut(&<C as Component>::ID)
+			.unwrap()
+			.push(Box::new(|e, comp_data| unsafe {
+				let comp: &C = &*(comp_data as *const _ as *const C);
+				callback(e, comp);
+			}));
+		self
+	}
+
+	pub fn on_update<C: Component>(
+		mut self,
+		callback: &'a dyn Fn(EntityId, &C),
+	) -> Self {
+		self.update_callbacks
+			.entry(<C as Component>::ID)
+			.or_default();
+		self.update_callbacks
+			.get_mut(&<C as Component>::ID)
+			.unwrap()
+			.push(Box::new(|e, comp_data| unsafe {
+				let comp: &C = &*(comp_data as *const _ as *const C);
+				callback(e, comp);
+			}));
+		self
+	}
+
+	pub fn on_remove<C: Component>(
+		mut self,
+		callback: &'a dyn Fn(EntityId, &C),
+	) -> Self {
+		self.remove_callbacks
+			.entry(<C as Component>::ID)
+			.or_default();
+		self.remove_callbacks
+			.get_mut(&<C as Component>::ID)
+			.unwrap()
+			.push(Box::new(|e, comp_data| unsafe {
+				let comp: &C = &*(comp_data as *const _ as *const C);
+				callback(e, comp);
+			}));
+		self
+	}
 }
