@@ -32,5 +32,6 @@ jobs:
             ~/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
       - uses: actions/checkout@v3
+      - run: CARGO_BAZEL_REPIN=1 bazel sync --only=crate_index
       - run: bazel build --config=ci //...
 
