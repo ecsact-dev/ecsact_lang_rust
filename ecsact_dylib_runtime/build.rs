@@ -4,9 +4,18 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
-fn main() {
-	println!("cargo:rerun-if-changed=src/dylib_wrapper.h");
-	println!("cargo:rerun-if-changed=src/dylib.cc");
+fn ecsact_include_dir() -> String {
+	// This environment variable is really only for the bazel build. Users should
+	// just use the `ecsact` command line in their PATH
+	let rt_headers = env::var("ECSACT_RUNTIME_HEADERS");
+	if rt_headers.is_ok() {
+		let rt_headers = rt_headers.unwrap();
+		let rt_headers: Vec<&str> = rt_headers.split(" ").collect();
+		let header = rt_headers.first().unwrap().to_owned().replace("\\", "/");
+		let header_index = header.find("/ecsact/").unwrap();
+		let include_dir = &header[..header_index];
+		return "../".to_string() + include_dir.into();
+	}
 
 	let ecsact_config = json::parse(&String::from_utf8_lossy(
 		&Command::new("ecsact")
@@ -17,12 +26,41 @@ fn main() {
 	))
 	.unwrap();
 
-	let include_dir = ecsact_config["include_dir"].as_str().unwrap();
+	return ecsact_config["include_dir"].as_str().unwrap().into();
+}
+
+fn ecsact_dylib_cc_path() -> String {
+	env::var("ECSACT_RUST_DYLIB_CC")
+		.unwrap_or("src/dylib.cc".to_string())
+		.into()
+}
+
+fn ecsact_dylib_wrapper_h() -> String {
+	env::var("ECSACT_RUST_DYLIB_WRAPPER_H")
+		.unwrap_or("src/dylib_wrapper.h".to_string())
+		.into()
+}
+
+fn main() {
+	let dylib_cc_path = ecsact_dylib_cc_path();
+	let dylib_wrapper_h_path = ecsact_dylib_wrapper_h();
+
+	println!("cargo:rerun-if-changed={}", dylib_wrapper_h_path);
+	println!("cargo:rerun-if-changed={}", dylib_cc_path);
+
+	let include_dir = ecsact_include_dir();
+
+	dbg!(&include_dir);
+	dbg!(std::env::current_dir()
+		.unwrap()
+		.to_str()
+		.unwrap()
+		.replace("\\", "/"));
 
 	cc::Build::new()
 		.cpp(true)
-		.file("src/dylib.cc")
-		.include(include_dir)
+		.file(dylib_cc_path)
+		.include(&include_dir)
 		.define("ECSACT_ASYNC_API_LOAD_AT_RUNTIME", "")
 		.define("ECSACT_CORE_API_LOAD_AT_RUNTIME", "")
 		.define("ECSACT_DYNAMIC_API_LOAD_AT_RUNTIME", "")
@@ -39,8 +77,8 @@ fn main() {
 		.allowlist_type("ecsact_.*")
 		.allowlist_function("ecsact_.*")
 		.newtype_enum("ecsact_.*")
-		.clang_arg("-I".to_string() + include_dir)
-		.header("src/dylib_wrapper.h")
+		.clang_arg("-I".to_string() + &include_dir)
+		.header(dylib_wrapper_h_path)
 		.parse_callbacks(Box::new(bindgen::CargoCallbacks))
 		.generate()
 		.expect("Unable to generate bindings");

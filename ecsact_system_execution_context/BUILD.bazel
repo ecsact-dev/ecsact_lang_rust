@@ -1,0 +1,31 @@
+load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+
+package(default_visibility = ["//visibility:public"])
+
+cargo_build_script(
+    name = "build_script",
+    srcs = ["build.rs"],
+    aliases = aliases(),
+    deps = all_crate_deps(
+        build = True,
+    ),
+    build_script_env = {
+        "ECSACT_RUNTIME_HEADERS": "$(execpaths @ecsact_runtime//:headers)",
+        "ECSACT_RUST_WRAPPER_H": "$(execpath src/wrapper.h)",
+    },
+    data = [
+        "@ecsact_runtime//:headers",
+        "src/wrapper.h",
+    ],
+)
+
+rust_library(
+    name = "ecsact_system_execution_context",
+    aliases = aliases(),
+    srcs = glob(["src/*.rs"]),
+    deps = [":build_script", "//ecsact"] + all_crate_deps(
+        normal = True,
+    ),
+)
