@@ -20,6 +20,8 @@ jobs:
             /Users/runneradmin/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
       - uses: actions/checkout@v3
+      - run: bazel sync --config=ci --only=crate_index
+        env: {CARGO_BAZEL_REPIN: 'true'}
       - run: bazel build --config=ci //...
 
   bazel-build-linux:
@@ -32,6 +34,7 @@ jobs:
             ~/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
       - uses: actions/checkout@v3
-      - run: CARGO_BAZEL_REPIN=1 bazel sync --only=crate_index
+      - run: bazel sync --config=ci --only=crate_index
+        env: {CARGO_BAZEL_REPIN: 'true'}
       - run: bazel build --config=ci //...
 
