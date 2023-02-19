@@ -8,9 +8,8 @@ fn ecsact_include_dir() -> String {
 	// This environment variable is really only for the bazel build. Users should
 	// just use the `ecsact` command line in their PATH
 	let rt_headers = env::var("ECSACT_RUNTIME_HEADERS");
-	if rt_headers.is_ok() {
-		let rt_headers = rt_headers.unwrap();
-		let rt_headers: Vec<&str> = rt_headers.split(" ").collect();
+	if let Ok(rt_headers) = rt_headers {
+		let rt_headers: Vec<&str> = rt_headers.split(' ').collect();
 		let header = rt_headers.first().unwrap().to_owned().replace("\\", "/");
 		let header_index = header.find("/ecsact/").unwrap();
 		let include_dir = &header[..header_index];
