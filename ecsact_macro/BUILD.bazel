@@ -1,9 +1,9 @@
 load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
 
 package(default_visibility = ["//visibility:public"])
 
-rust_library(
+rust_proc_macro(
     name = "ecsact_macro",
     aliases = aliases(),
     srcs = glob(["src/*.rs"]),

@@ -1,0 +1,24 @@
+load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_shared_library(
+    name = "ecsact_rust_codegen",
+    aliases = aliases(),
+    srcs = glob(["src/*.rs"]),
+    deps = [
+        "//ecsact",
+        "//ecsact_dylib_runtime",
+    ] + all_crate_deps(
+        normal = True,
+    ),
+    proc_macro_deps = ["//ecsact_macro"] + all_crate_deps(
+        proc_macro = True,
+    ),
+)
+
+alias(
+    name = "rust_source_codegen",
+    actual = ":ecsact_rust_codegen",
+)

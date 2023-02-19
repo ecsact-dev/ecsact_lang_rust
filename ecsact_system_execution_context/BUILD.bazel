@@ -19,6 +19,7 @@ cargo_build_script(
         "@ecsact_runtime//:headers",
         "src/wrapper.h",
     ],
+    tags = ["manual"],
 )
 
 rust_library(
@@ -28,4 +29,5 @@ rust_library(
     deps = [":build_script", "//ecsact"] + all_crate_deps(
         normal = True,
     ),
+    tags = ["manual"],
 )
