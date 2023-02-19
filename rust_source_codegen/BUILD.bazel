@@ -1,10 +1,11 @@
 load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+load("//:codegen_plugin.bzl", "rust_ecsact_codegen_plugin")
 
 package(default_visibility = ["//visibility:public"])
 
 rust_shared_library(
-    name = "ecsact_rust_codegen",
+    name = "ecsact_rust_codegen_bin",
     aliases = aliases(),
     srcs = glob(["src/*.rs"]),
     deps = [
@@ -18,7 +19,8 @@ rust_shared_library(
     ),
 )
 
-alias(
+rust_ecsact_codegen_plugin(
     name = "rust_source_codegen",
-    actual = ":ecsact_rust_codegen",
+    rust_shared_library = ":ecsact_rust_codegen_bin",
+    output_extension = "rs",
 )
