@@ -23,9 +23,9 @@
 #endif
 
 #define ECSACT_DYLIB_UTIL_FN_PTR_DEFN(fn_name, unused)                         \
-  decltype(::fn_name)(::fn_name) = nullptr
+  decltype(fn_name)(fn_name) = nullptr
 
-#define ECSACT_DYLIB_UTIL_FN_PTR_ASSIGN(fn_name) (::fn_name) = nullptr
+#define ECSACT_DYLIB_UTIL_FN_PTR_ASSIGN(fn_name) (fn_name) = nullptr
 
 #ifdef ECSACT_ASYNC_API_LOAD_AT_RUNTIME
 FOR_EACH_ECSACT_ASYNC_API_FN(ECSACT_DYLIB_UTIL_FN_PTR_DEFN);
@@ -53,7 +53,7 @@ FOR_EACH_ECSACT_SERIALIZE_API_FN(ECSACT_DYLIB_UTIL_FN_PTR_DEFN);
 
 #define ASSIGN_FN_IF(fn_name, target_fn_name, fn_ptr)                          \
   if (std::strcmp(#fn_name, target_fn_name) == 0) {                            \
-    ::fn_name = reinterpret_cast<decltype(::fn_name)>(fn_ptr);                 \
+    fn_name = reinterpret_cast<decltype(fn_name)>(fn_ptr);                     \
   }                                                                            \
   static_assert(true, "macro requires ;")
 

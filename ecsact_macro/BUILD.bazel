@@ -1,0 +1,16 @@
+load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_proc_macro(
+    name = "ecsact_macro",
+    aliases = aliases(),
+    srcs = glob(["src/*.rs"]),
+    deps = ["//ecsact"] + all_crate_deps(
+        normal = True,
+    ),
+    proc_macro_deps = all_crate_deps(
+        proc_macro = True,
+    ),
+)

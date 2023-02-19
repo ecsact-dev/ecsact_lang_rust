@@ -1,0 +1,48 @@
+workspace(name = "ecsact_lang_rust")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "ecsact_runtime",
+    sha256 = "f470781217ac73f204f5727f4f9531787f477578aa3f6d7ad452a67e7cb1f26f",
+    strip_prefix = "ecsact_runtime-85de12005c177e2a1d735095ee134cfda86a7dae",
+    urls = ["https://github.com/ecsact-dev/ecsact_runtime/archive/85de12005c177e2a1d735095ee134cfda86a7dae.zip"],
+)
+
+http_archive(
+    name = "rules_rust",
+    sha256 = "2466e5b2514772e84f9009010797b9cd4b51c1e6445bbd5b5e24848d90e6fb2e",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.18.0/rules_rust-v0.18.0.tar.gz"],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains(edition = "2021")
+
+load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
+
+crate_universe_dependencies()
+
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
+
+crates_repository(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",
+    lockfile = "//:Cargo.Bazel.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//ecsact_dylib_runtime:Cargo.toml",
+        "//ecsact_macro:Cargo.toml",
+        "//ecsact_rtb:Cargo.toml",
+        "//ecsact_system_execution_context:Cargo.toml",
+        "//example:Cargo.toml",
+        "//ecsact:Cargo.toml",
+        "//rust_source_codegen:Cargo.toml",
+    ],
+)
+
+load("@crate_index//:defs.bzl", "crate_repositories")
+
+crate_repositories()
