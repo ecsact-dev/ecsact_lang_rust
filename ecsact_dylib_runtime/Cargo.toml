@@ -2,13 +2,18 @@
 name = "ecsact_dylib_runtime"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+repository = "https://github.com/ecsact-dev/ecsact_lang_rust"
+license = "MIT"
+homepage = "https://ecsact.dev"
+description = "Ecsact runtime dylib wrappers for rust"
 
 [lib]
 crate-type = ["rlib"]
 bench = false
 
 [dependencies]
-ecsact = { path = "../ecsact" }
+ecsact = { path = "../ecsact", version = "0.1.0" }
 
 [build-dependencies]
 bindgen = "0.63.0"
