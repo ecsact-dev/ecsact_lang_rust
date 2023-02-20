@@ -36,8 +36,9 @@ jobs:
       - run: bazel sync --config=ci --only=crate_index
         env: {CARGO_BAZEL_REPIN: 'true'}
       - run: bazel build --config=ci -c opt //ecsact_rust_codegen:ecsact_rust_codegen_bin
+      - run: cp bazel-bin/ecsact_rust_codegen/libecsact_rust_codegen_bin.so ecsact_rust_codegen_bin.so
       - uses: softprops/action-gh-release@v1
         with:
           fail_on_unmatched_files: true
-          files: bazel-bin/ecsact_rust_codegen/ecsact_rust_codegen_bin.so
+          files: ecsact_rust_codegen_bin.so
 
