@@ -8,7 +8,7 @@ cargo_build_script(
     name = "build_script",
     srcs = ["build.rs"],
     aliases = aliases(),
-    deps = all_crate_deps(
+    deps = ["@rules_rust//tools/runfiles"] + all_crate_deps(
         build = True,
     ),
     build_script_env = {

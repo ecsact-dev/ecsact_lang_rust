@@ -1,5 +1,7 @@
 extern crate bindgen;
 
+// TODO(zaucy): Optionally include runfiles only while compiling with bazel
+use runfiles::Runfiles;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
@@ -8,12 +10,17 @@ fn ecsact_include_dir() -> String {
 	// This environment variable is really only for the bazel build. Users should
 	// just use the `ecsact` command line in their PATH
 	let rt_headers = env::var("ECSACT_RUNTIME_HEADERS");
-	if let Ok(rt_headers) = rt_headers {
-		let rt_headers: Vec<&str> = rt_headers.split(' ').collect();
-		let header = rt_headers.first().unwrap().to_owned().replace("\\", "/");
+	if rt_headers.is_ok() {
+		let runfiles = Runfiles::create().unwrap();
+		let header = runfiles
+			.rlocation("ecsact_runtime/ecsact/runtime.h")
+			.into_os_string()
+			.into_string()
+			.unwrap()
+			.replace("\\", "/");
 		let header_index = header.find("/ecsact/").unwrap();
 		let include_dir = &header[..header_index];
-		return "../".to_string() + include_dir.into();
+		return include_dir.into();
 	}
 
 	let ecsact_config = json::parse(&String::from_utf8_lossy(
