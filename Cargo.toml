@@ -1,6 +1,6 @@
 [workspace]
 members = [
-	"rust_source_codegen",
+	"ecsact_rust_codegen",
 	"ecsact",
 	"ecsact_dylib_runtime",
 	"ecsact_rtb",

@@ -86,7 +86,7 @@ dependencies = [
  "ecsact",
  "ecsact_macro",
  "ecsact_rtb",
- "ecsact_rust_source_codegen",
+ "ecsact_rust_codegen",
  "ecsact_system_execution_context",
 ]
 
@@ -110,7 +110,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecsact_rust_source_codegen"
+name = "ecsact_rust_codegen"
 version = "0.1.0"
 dependencies = [
  "ecsact",

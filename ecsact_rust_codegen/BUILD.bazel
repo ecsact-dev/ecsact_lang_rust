@@ -20,7 +20,7 @@ rust_shared_library(
 )
 
 rust_ecsact_codegen_plugin(
-    name = "rust_source_codegen",
+    name = "ecsact_rust_codegen",
     rust_shared_library = ":ecsact_rust_codegen_bin",
     output_extension = "rs",
 )
