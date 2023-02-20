@@ -2,6 +2,11 @@
 name = "ecsact_macro"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+repository = "https://github.com/ecsact-dev/ecsact_lang_rust"
+license = "MIT"
+homepage = "https://ecsact.dev"
+description = "Ecsact proc macros"
 
 [lib]
 proc-macro = true
