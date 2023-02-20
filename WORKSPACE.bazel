@@ -39,7 +39,7 @@ crates_repository(
         "//ecsact_system_execution_context:Cargo.toml",
         "//example:Cargo.toml",
         "//ecsact:Cargo.toml",
-        "//rust_source_codegen:Cargo.toml",
+        "//ecsact_rust_codegen:Cargo.toml",
     ],
 )
 

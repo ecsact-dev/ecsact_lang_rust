@@ -1,5 +1,5 @@
 {
-  "checksum": "c193bed30df32cc7cf98f05366bdf1c21ad423e23c807b15fd7bf10b2b9667d9",
+  "checksum": "bb4866d7498a43da2e44961c18a896d97a8fd1702edfd23f2d89c37678f606dc",
   "crates": {
     "bindgen 0.63.0": {
       "name": "bindgen",
@@ -378,7 +378,7 @@
         "edition": "2021",
         "version": "0.1.0"
       },
-      "license": null
+      "license": "MIT"
     },
     "ecsact_dylib_runtime 0.1.0": {
       "name": "ecsact_dylib_runtime",
@@ -443,7 +443,7 @@
           "selects": {}
         }
       },
-      "license": null
+      "license": "MIT"
     },
     "ecsact_example 0.1.0": {
       "name": "ecsact_example",
@@ -533,7 +533,7 @@
         "edition": "2021",
         "version": "0.1.0"
       },
-      "license": null
+      "license": "MIT"
     },
     "ecsact_rtb 0.1.0": {
       "name": "ecsact_rtb",
@@ -577,8 +577,8 @@
       },
       "license": null
     },
-    "ecsact_rust_source_codegen 0.1.0": {
-      "name": "ecsact_rust_source_codegen",
+    "ecsact_rust_codegen 0.1.0": {
+      "name": "ecsact_rust_codegen",
       "version": "0.1.0",
       "repository": null,
       "targets": [],
@@ -607,7 +607,7 @@
         "edition": "2021",
         "version": "0.1.0"
       },
-      "license": null
+      "license": "MIT"
     },
     "ecsact_system_execution_context 0.1.0": {
       "name": "ecsact_system_execution_context",
@@ -1910,7 +1910,7 @@
     "ecsact_example 0.1.0": "example",
     "ecsact_macro 0.1.0": "ecsact_macro",
     "ecsact_rtb 0.1.0": "ecsact_rtb",
-    "ecsact_rust_source_codegen 0.1.0": "rust_source_codegen",
+    "ecsact_rust_codegen 0.1.0": "ecsact_rust_codegen",
     "ecsact_system_execution_context 0.1.0": "ecsact_system_execution_context"
   },
   "conditions": {
