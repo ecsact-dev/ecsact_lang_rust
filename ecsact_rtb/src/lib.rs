@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
@@ -49,7 +50,7 @@ impl EcsactRuntimeBuilder {
 	fn ecsact_codegen(&self) {
 		// TODO(zaucy): This path is only temporary until the Ecsact SDK with
 		//              the rust codgen is released.
-		let rust_plugin_path = "../target/debug/ecsact_rust_source_codegen.dll";
+		let rust_plugin_path = "../target/debug/ecsact_rust_codegen.dll";
 
 		let codegen_output = Command::new("ecsact")
 			.arg("codegen")
@@ -82,10 +83,22 @@ impl EcsactRuntimeBuilder {
 			out_dir.to_string() + "/runtime/" + &crate_name + "_ecsact_rt.dll";
 		let out_tmp = out_dir + "/tmp";
 		let mut cmd = Command::new("ecsact_rtb");
+		cmd.current_dir(
+			std::env::var("CARGO_MANIFEST_DIR")
+				.expect("CARGO_MANIFEST_DIR unset"),
+		);
 		cmd.stdout(Stdio::piped());
 		cmd.args(&self.srcs);
 		cmd.arg("--output=".to_string() + &out_rt);
 		cmd.arg("--temp_dir=".to_string() + &out_tmp);
+		cmd.arg("--report_format=json".to_string());
+
+		let cmd_args_str = cmd
+			.get_args()
+			.collect::<Vec<&OsStr>>()
+			.join(OsStr::new(" "))
+			.to_string_lossy()
+			.to_string();
 		let mut cmd = cmd.spawn().unwrap();
 
 		let stdout = cmd.stdout.as_mut().unwrap();
@@ -134,7 +147,14 @@ impl EcsactRuntimeBuilder {
 			}
 		}
 
-		cmd.wait().unwrap();
+		let exit_status = cmd.wait().unwrap();
+
+		assert!(
+			exit_status.success(),
+			"Ecsact RTB exited with {}\nSubcommand: ecsact_rtb {}",
+			exit_status.code().unwrap(),
+			cmd_args_str
+		);
 
 		runtime
 	}
@@ -220,7 +240,7 @@ impl EcsactRuntimeBuilder {
 
 		for (file_name, file_content) in template_files {
 			let local_path =
-				PathBuf::from(self.output_dir.to_string() + "/" + file_name);
+				PathBuf::from(format!("{}/{}", self.output_dir, file_name));
 			std::fs::create_dir_all(local_path.parent().unwrap()).unwrap();
 			// TODO(zaucy): Set readonly permissions to prevent mistakes
 			std::fs::write(local_path, file_content).unwrap();
@@ -237,6 +257,11 @@ impl EcsactRuntimeBuilder {
 		if !target.contains("wasm") {
 			let output_dir =
 				std::path::Path::new(&runtime.output).parent().unwrap();
+			assert!(
+				std::path::Path::new(&runtime.output).exists(),
+				"Ecsact runtime '{}' does not exist",
+				&runtime.output
+			);
 			let output_file_no_ext = std::path::Path::new(&runtime.output)
 				.with_extension("")
 				.file_name()
