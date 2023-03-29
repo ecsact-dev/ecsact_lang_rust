@@ -8,6 +8,10 @@ license = "MIT"
 homepage = "https://ecsact.dev"
 description = "Ecsact runtime dylib wrappers for rust"
 
+[features]
+cargo = []
+default = ["cargo"]
+
 [lib]
 crate-type = ["rlib"]
 bench = false
@@ -16,6 +20,7 @@ bench = false
 ecsact = { path = "../ecsact", version = "0.1.0" }
 
 [build-dependencies]
+ecsact_env = { path = "../ecsact_env" }
 bindgen = "0.63.0"
 cc = "1.0.78"
 json = "0.12.4"

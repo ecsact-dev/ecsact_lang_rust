@@ -1,39 +1,8 @@
 extern crate bindgen;
 
-// TODO(zaucy): Optionally include runfiles only while compiling with bazel
-use runfiles::Runfiles;
+use ecsact_env::sdk_include_dir;
 use std::env;
 use std::path::PathBuf;
-use std::process::Command;
-
-fn ecsact_include_dir() -> String {
-	// This environment variable is really only for the bazel build. Users should
-	// just use the `ecsact` command line in their PATH
-	let rt_headers = env::var("ECSACT_RUNTIME_HEADERS");
-	if rt_headers.is_ok() {
-		let runfiles = Runfiles::create().unwrap();
-		let header = runfiles
-			.rlocation("ecsact_runtime/ecsact/runtime.h")
-			.into_os_string()
-			.into_string()
-			.unwrap()
-			.replace("\\", "/");
-		let header_index = header.find("/ecsact/").unwrap();
-		let include_dir = &header[..header_index];
-		return include_dir.into();
-	}
-
-	let ecsact_config = json::parse(&String::from_utf8_lossy(
-		&Command::new("ecsact")
-			.arg("config")
-			.output()
-			.expect("ecsact config failed")
-			.stdout,
-	))
-	.unwrap();
-
-	return ecsact_config["include_dir"].as_str().unwrap().into();
-}
 
 fn ecsact_dylib_cc_path() -> String {
 	env::var("ECSACT_RUST_DYLIB_CC")
@@ -54,7 +23,7 @@ fn main() {
 	println!("cargo:rerun-if-changed={}", dylib_wrapper_h_path);
 	println!("cargo:rerun-if-changed={}", dylib_cc_path);
 
-	let include_dir = ecsact_include_dir();
+	let include_dir = sdk_include_dir();
 
 	dbg!(&include_dir);
 	dbg!(std::env::current_dir()
@@ -66,7 +35,7 @@ fn main() {
 	cc::Build::new()
 		.cpp(true)
 		.file(dylib_cc_path)
-		.include(&include_dir)
+		.include(include_dir.to_str().unwrap())
 		.define("ECSACT_ASYNC_API_LOAD_AT_RUNTIME", "")
 		.define("ECSACT_CORE_API_LOAD_AT_RUNTIME", "")
 		.define("ECSACT_DYNAMIC_API_LOAD_AT_RUNTIME", "")
@@ -83,7 +52,7 @@ fn main() {
 		.allowlist_type("ecsact_.*")
 		.allowlist_function("ecsact_.*")
 		.newtype_enum("ecsact_.*")
-		.clang_arg("-I".to_string() + &include_dir)
+		.clang_arg(format!("-I{}", include_dir.to_str().unwrap()))
 		.header(dylib_wrapper_h_path)
 		.parse_callbacks(Box::new(bindgen::CargoCallbacks))
 		.generate()

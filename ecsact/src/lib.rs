@@ -47,6 +47,7 @@ typed_id!(FieldId);
 typed_id!(VariantId);
 typed_id!(RegistryId);
 typed_id!(EntityId);
+typed_id!(PlaceholderEntityId);
 typed_id!(SystemGeneratesId);
 typed_id!(AsyncRequestId);
 
@@ -195,18 +196,29 @@ pub trait SystemLike {
 }
 
 type ComponentVoidDataCallback<'a> = Box<dyn Fn(EntityId, *const c_void) + 'a>;
+type EntityEventCallback<'a> = Box<dyn Fn(EntityId, PlaceholderEntityId) + 'a>;
 
 #[derive(Default)]
 pub struct ExecutionEventsCollector<'a> {
+	pub entity_created_callbacks: Vec<EntityEventCallback<'a>>,
 	pub init_callbacks:
 		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
 	pub update_callbacks:
 		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
 	pub remove_callbacks:
 		HashMap<ComponentId, Vec<ComponentVoidDataCallback<'a>>>,
+	pub entity_destroyed_callbacks: Vec<EntityEventCallback<'a>>,
 }
 
 impl<'a> ExecutionEventsCollector<'a> {
+	pub fn on_entity_created(
+		mut self,
+		callback: &'a dyn Fn(EntityId, PlaceholderEntityId),
+	) -> Self {
+		self.entity_created_callbacks.push(Box::new(callback));
+		self
+	}
+
 	pub fn on_init<C: Component>(
 		mut self,
 		callback: &'a dyn Fn(EntityId, &C),
@@ -253,6 +265,14 @@ impl<'a> ExecutionEventsCollector<'a> {
 				let comp: &C = &*(comp_data as *const _ as *const C);
 				callback(e, comp);
 			}));
+		self
+	}
+
+	pub fn on_entity_destroyed(
+		mut self,
+		callback: &'a dyn Fn(EntityId, PlaceholderEntityId),
+	) -> Self {
+		self.entity_destroyed_callbacks.push(Box::new(callback));
 		self
 	}
 }
