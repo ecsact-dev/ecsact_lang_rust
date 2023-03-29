@@ -1,11 +1,12 @@
 [workspace]
 members = [
-	"ecsact_rust_codegen",
 	"ecsact",
 	"ecsact_dylib_runtime",
-	"ecsact_rtb",
-	"example",
+	"ecsact_env",
 	"ecsact_macro",
+	"ecsact_rtb",
+	"ecsact_rust_codegen",
 	"ecsact_system_execution_context",
+	"example",
 ]
 
