@@ -8,16 +8,14 @@ cargo_build_script(
     name = "build_script",
     srcs = ["build.rs"],
     aliases = aliases(),
-    deps = ["@rules_rust//tools/runfiles"] + all_crate_deps(
+    deps = ["//ecsact_env"] + all_crate_deps(
         build = True,
     ),
     build_script_env = {
-        "ECSACT_RUNTIME_HEADERS": "$(execpaths @ecsact_runtime//:headers)",
         "ECSACT_RUST_DYLIB_CC": "$(execpath src/dylib.cc)",
         "ECSACT_RUST_DYLIB_WRAPPER_H": "$(execpath src/dylib_wrapper.h)",
     },
     data = [
-        "@ecsact_runtime//:headers",
         "src/dylib.cc",
         "src/dylib_wrapper.h",
     ],
