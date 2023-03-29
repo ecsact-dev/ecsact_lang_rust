@@ -7,6 +7,7 @@ edition = "2021"
 ecsact = { path = "../ecsact" }
 
 [build-dependencies]
+ecsact_env = { path = "../ecsact_env" }
 bindgen = "0.63.0"
 json = "0.12.4"
 

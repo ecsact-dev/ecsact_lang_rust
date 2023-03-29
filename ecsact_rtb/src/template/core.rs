@@ -38,6 +38,30 @@ pub fn create_registry(registry_name: &str) -> RegistryId {
 	unsafe { ecsact_create_registry(registry_name_cstr.as_ptr()).into() }
 }
 
+unsafe extern "C" fn c_entity_created_callback_handler(
+	_event: crate::bindings::ecsact_event,
+	entity_id: crate::bindings::ecsact_entity_id,
+	placeholder_entity_id: crate::bindings::ecsact_placeholder_entity_id,
+	callback_user_data: *mut c_void,
+) {
+	let evc = &*(callback_user_data as *const ecsact::ExecutionEventsCollector);
+	for cb in &evc.entity_created_callbacks {
+		cb(entity_id.into(), placeholder_entity_id.into());
+	}
+}
+
+unsafe extern "C" fn c_entity_destroyed_callback_handler(
+	_event: crate::bindings::ecsact_event,
+	entity_id: crate::bindings::ecsact_entity_id,
+	placeholder_entity_id: crate::bindings::ecsact_placeholder_entity_id,
+	callback_user_data: *mut c_void,
+) {
+	let evc = &*(callback_user_data as *const ecsact::ExecutionEventsCollector);
+	for cb in &evc.entity_destroyed_callbacks {
+		cb(entity_id.into(), placeholder_entity_id.into());
+	}
+}
+
 unsafe extern "C" fn c_init_callback_handler(
 	_event: crate::bindings::ecsact_event,
 	entity_id: crate::bindings::ecsact_entity_id,
@@ -98,12 +122,20 @@ pub fn execute_systems(
 			let user_data =
 				&mut events_collector.unwrap() as *mut _ as *mut c_void;
 			c_ev_collector = Some(ecsact_execution_events_collector {
+				entity_created_callback: Some(
+					c_entity_created_callback_handler,
+				),
+				entity_created_callback_user_data: user_data,
 				init_callback: Some(c_init_callback_handler),
 				init_callback_user_data: user_data,
 				update_callback: Some(c_update_callback_handler),
 				update_callback_user_data: user_data,
 				remove_callback: Some(c_remove_callback_handler),
 				remove_callback_user_data: user_data,
+				entity_destroyed_callback: Some(
+					c_entity_destroyed_callback_handler,
+				),
+				entity_destroyed_callback_user_data: user_data,
 			});
 		}
 

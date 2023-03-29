@@ -1,0 +1,16 @@
+load("@crate_index//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "ecsact_env",
+    aliases = aliases(),
+    srcs = glob(["src/*.rs"]),
+    deps = ["@rules_rust//tools/runfiles"] + all_crate_deps(
+        normal = True,
+    ),
+    data = [
+        "@ecsact_runtime//:headers",
+    ],
+)

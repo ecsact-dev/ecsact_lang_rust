@@ -33,13 +33,14 @@ crates_repository(
     lockfile = "//:Cargo.Bazel.lock",
     manifests = [
         "//:Cargo.toml",
+        "//ecsact:Cargo.toml",
         "//ecsact_dylib_runtime:Cargo.toml",
+        "//ecsact_env:Cargo.toml",
         "//ecsact_macro:Cargo.toml",
         "//ecsact_rtb:Cargo.toml",
+        "//ecsact_rust_codegen:Cargo.toml",
         "//ecsact_system_execution_context:Cargo.toml",
         "//example:Cargo.toml",
-        "//ecsact:Cargo.toml",
-        "//ecsact_rust_codegen:Cargo.toml",
     ],
 )
 
